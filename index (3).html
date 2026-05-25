@@ -1,0 +1,1232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Jacqueline Rosales</title>
+<meta name="description" content="Jacqueline Rosales — visual researcher and interdisciplinary practitioner." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ground: #20261b;          /* dark moss base */
+    --ground-2: #2a3024;        /* slightly lighter */
+    --line: #ece4d4;            /* warm white drawing line */
+    --line-soft: rgba(236, 228, 212, 0.55);
+    --line-faint: rgba(236, 228, 212, 0.22);
+    --text: #ede6d6;
+    --text-soft: rgba(237, 230, 214, 0.65);
+    --accent: #d4a574;          /* warm pale gold */
+    --accent-strong: #e8b88a;
+    --mist: rgba(32, 38, 27, 0.94);
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{
+    background: var(--ground);
+    color: var(--text);
+    font-family: 'Cormorant Garamond', serif;
+    cursor: crosshair;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  body{
+    margin:0;
+    min-height: 100%;
+    background: var(--ground);
+    color: var(--text);
+    font-family: 'Cormorant Garamond', serif;
+    cursor: crosshair;
+  }
+  #scroller{ width:1px; height: 700vh; pointer-events:none; visibility:hidden; }
+
+  /* film grain over the whole scene */
+  body::after{
+    content:'';
+    position:fixed; inset:0;
+    pointer-events:none;
+    z-index: 60;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    opacity:.55;
+    mix-blend-mode: overlay;
+  }
+  /* subtle vignette */
+  body::before{
+    content:'';
+    position:fixed; inset:0;
+    pointer-events:none;
+    z-index: 59;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.45) 100%);
+  }
+
+  #canvas-wrap{ position:fixed; inset:0; z-index: 1; }
+  canvas{ display:block; width:100%; height:100%; }
+
+  /* HERO — full-screen intro */
+  .hero{
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    text-align:center;
+    pointer-events: none;
+    transition: opacity 0.7s ease, transform 0.7s ease;
+    background: linear-gradient(180deg, rgba(32,38,27,0.0) 0%, rgba(32,38,27,0.55) 100%);
+  }
+  .hero.fade{
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  .hero h1{
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(48px, 9vw, 124px);
+    letter-spacing: -0.01em;
+    line-height: 1;
+    color: var(--text);
+  }
+  .hero .sub{
+    margin-top: 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+  }
+  .hero .prompt{
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--text);
+    opacity: .85;
+    animation: bob 2.6s ease-in-out infinite;
+  }
+  .hero .prompt .line{
+    display:block; width:1px; height: 32px;
+    background: var(--text); margin: 10px auto 0;
+    transform-origin: top;
+    animation: scrollLine 2.6s ease-in-out infinite;
+  }
+  @keyframes bob{
+    0%,100%{ transform: translateX(-50%) translateY(0); opacity:.85; }
+    50%{ transform: translateX(-50%) translateY(6px); opacity:.5; }
+  }
+  @keyframes scrollLine{
+    0%,100%{ transform: scaleY(1); }
+    50%{ transform: scaleY(0.4); }
+  }
+
+  /* HUD */
+  .hud{
+    position: fixed;
+    z-index: 30;
+    pointer-events:none;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+    letter-spacing: 0.14em;
+    font-size: 10px;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .hud.visible{ opacity: 1; }
+  .hud > *{ pointer-events:auto; }
+
+  .hud-top{
+    top: 22px; left: 32px; right: 32px;
+    display:flex; justify-content:space-between; align-items:flex-start;
+    gap: 24px;
+  }
+  .brand{
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 22px;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1;
+    color: var(--text);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .brand small{
+    display:block;
+    font-family: 'JetBrains Mono', monospace;
+    font-style: normal;
+    font-size: 9px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    margin-top: 8px;
+    color: var(--text-soft);
+  }
+  .hud-meta{
+    text-align:right;
+    line-height: 1.7;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+  }
+
+  /* SVG annotation column overlay — drawn from each crosshair to top */
+  #annotations-svg{
+    position: fixed;
+    inset: 0;
+    z-index: 6;
+    pointer-events: none;
+    width: 100%; height: 100%;
+  }
+  #annotations-svg .col-line{
+    stroke: var(--line);
+    stroke-width: 0.8;
+    opacity: 0.25;
+    fill: none;
+  }
+  #annotations-svg .col-line.active{
+    opacity: 0.9;
+    stroke-width: 1.2;
+  }
+  #annotations-svg .col-tick{
+    stroke: var(--line);
+    stroke-width: 1;
+    opacity: 0.3;
+  }
+  #annotations-svg .col-tick.active{
+    opacity: 1;
+    stroke: var(--accent);
+    stroke-width: 1.4;
+  }
+  #annotations-svg text{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    fill: var(--text);
+    opacity: 0.4;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  #annotations-svg text.active{
+    opacity: 1;
+    fill: var(--accent);
+    font-weight: 500;
+  }
+
+  /* RIGHT CONTENT PANEL */
+  .panel{
+    position: fixed;
+    top: 80px;
+    right: 32px;
+    bottom: 110px;
+    width: clamp(340px, 36vw, 460px);
+    z-index: 20;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .6s ease;
+  }
+  .panel.visible{ opacity: 1; pointer-events: auto; }
+
+  .panel-slide{
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    padding: 24px 4px 24px 24px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity .5s ease, transform .5s ease;
+    pointer-events: none;
+    /* paper-grain backdrop */
+    background: linear-gradient(180deg, rgba(32,38,27,0.0) 0%, rgba(32,38,27,0.45) 30%, rgba(32,38,27,0.55) 100%);
+    border-left: 1px solid rgba(236,228,212,0.18);
+  }
+  .panel-slide.active{
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .panel-slide::-webkit-scrollbar{ width: 3px; }
+  .panel-slide::-webkit-scrollbar-track{ background: transparent; }
+  .panel-slide::-webkit-scrollbar-thumb{ background: rgba(236,228,212,0.2); }
+
+  .p-num{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .p-title{
+    font-family:'Cormorant Garamond', serif;
+    font-weight: 500; font-style: italic;
+    font-size: clamp(28px, 3.2vw, 42px);
+    line-height: 1.02;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+  .p-meta{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    padding-bottom: 16px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid rgba(236,228,212,0.18);
+    line-height: 1.7;
+  }
+  .p-body{
+    font-family:'Cormorant Garamond', serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: rgba(237, 230, 214, 0.88);
+  }
+  .p-body p + p{ margin-top: 12px; }
+  .p-body em{ font-style: italic; color: var(--accent-strong); }
+
+  .p-drawings{
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(236,228,212,0.18);
+  }
+  .p-drawings-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    margin-bottom: 14px;
+  }
+  .p-drawing-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .p-drawing{
+    aspect-ratio: 1;
+    background: rgba(236,228,212,0.04);
+    border: 1px solid rgba(236,228,212,0.2);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .p-drawing img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    opacity: 0.92;
+  }
+  .p-drawing svg{
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .p-drawing.wide{ grid-column: span 2; aspect-ratio: 16/9; }
+  .p-drawing-label{
+    position: absolute;
+    bottom: 6px; left: 8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    background: rgba(32,38,27,0.7);
+    padding: 2px 6px;
+  }
+
+  /* SIDE NAV (left side) */
+  .navlist{
+    position: fixed;
+    top: 50%;
+    left: 32px;
+    transform: translateY(-50%);
+    z-index: 32;
+    display:flex; flex-direction:column;
+    gap: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .navlist.visible{ opacity: 1; }
+  .navlist a{
+    color: var(--text);
+    text-decoration: none;
+    opacity: 0.4;
+    cursor: pointer;
+    display:flex; align-items:center; gap: 10px;
+    transition: opacity .25s ease, transform .25s ease, color .25s ease;
+    line-height: 1.2;
+  }
+  .navlist a:hover{ opacity: 1; color: var(--accent); transform: translateX(4px); }
+  .navlist a.active{ opacity: 1; color: var(--accent); font-weight: 500; }
+  .navlist a::before{
+    content:''; display:block;
+    width: 16px; height: 1px;
+    background: currentColor;
+    flex-shrink: 0;
+    transition: width .25s ease;
+  }
+  .navlist a:hover::before, .navlist a.active::before{ width: 32px; }
+  .navlist .num{ opacity: 0.65; }
+
+  /* BOTTOM HUD */
+  .hud-bottom{
+    bottom: 24px; left: 32px; right: 32px;
+    display:flex; justify-content:space-between; align-items:flex-end;
+    gap: 24px;
+  }
+  .progress{
+    display:flex; flex-direction:column; gap: 6px;
+    max-width: 280px;
+  }
+  .progress-num{
+    opacity:.65;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+  }
+  .progress-bar{
+    width: 220px; height: 1px;
+    background: rgba(236,228,212,0.2);
+    position:relative;
+  }
+  .progress-bar .fill{
+    position:absolute; left:0; top:-1px; height: 3px;
+    background: var(--accent);
+    transition: width 0.08s linear;
+  }
+  .scroll-cue{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    opacity: .55;
+    text-align:right;
+  }
+
+  /* loader */
+  .loader{
+    position:fixed; inset:0;
+    background: var(--ground);
+    z-index: 999;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    transition: opacity .8s ease;
+    gap: 18px;
+  }
+  .loader.gone{ opacity:0; pointer-events:none; }
+  .loader-line{
+    width: 140px; height: 1px;
+    background: rgba(236,228,212,0.2); position:relative; overflow:hidden;
+  }
+  .loader-line::after{
+    content:''; position:absolute; left:0; top:-1px; height: 3px;
+    background: var(--text);
+    animation: loaderBar 1.6s ease-in-out infinite;
+  }
+  @keyframes loaderBar{
+    0%{ left:-40%; width: 40%; }
+    50%{ left: 30%; width: 50%; }
+    100%{ left: 100%; width: 30%; }
+  }
+  .loader-sub{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.3em;
+    text-transform:uppercase;
+    color: var(--text-soft);
+  }
+
+  @media (max-width: 900px){
+    .panel{ width: 70vw; right: 16px; top: 70px; bottom: 100px; }
+    .navlist{ left: 14px; gap: 8px; font-size: 8px; }
+    .navlist a::before{ width: 10px; }
+    .navlist a:hover::before, .navlist a.active::before{ width: 16px; }
+  }
+  @media (max-width: 600px){
+    .panel{ width: 92vw; right: 4vw; }
+    .navlist .name{ display:none; }
+    .hero h1{ font-size: 56px; }
+    .p-title{ font-size: 28px; }
+    .p-body{ font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="loader" id="loader">
+  <div class="loader-line"></div>
+  <div class="loader-sub">Drawing the landscape</div>
+</div>
+
+<div id="canvas-wrap"></div>
+<svg id="annotations-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+
+<!-- Hero intro -->
+<div class="hero" id="hero">
+  <h1>Jacqueline Rosales</h1>
+  <div class="sub">Visual researcher · Interdisciplinary practitioner</div>
+  <div class="prompt">
+    Selected Works
+    <span class="line"></span>
+  </div>
+</div>
+
+<!-- HUD -->
+<header class="hud hud-top" id="hud-top">
+  <a class="brand" id="brand-link">
+    Jacqueline Rosales
+    <small>Selected Works · 2017 — 2025</small>
+  </a>
+  <div class="hud-meta">A drawn landscape<br>of the Amazon</div>
+</header>
+
+<!-- Side nav -->
+<nav class="navlist" id="navlist"></nav>
+
+<!-- Project content panel (right side, swaps with scroll) -->
+<aside class="panel" id="panel"></aside>
+
+<footer class="hud hud-bottom" id="hud-bottom">
+  <div class="progress">
+    <div class="progress-num" id="prog-num">01 / 06 — OUR SEEDS, OUR LAND</div>
+    <div class="progress-bar"><div class="fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="scroll-cue">Scroll to advance · Click crosshair to expand</div>
+</footer>
+
+<div id="scroller"></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+/* ---- PROJECTS ----
+   Each project's `drawings` array contains placeholder SVGs that render
+   inside the right-side panel. To replace any with a real image, swap the
+   `svg` field with `img: 'images/your-file.jpg'` (and upload that image
+   alongside index.html when deploying to Cloudflare).
+*/
+const PROJECTS = [
+  {
+    id: 'our-seeds',
+    num: '01',
+    title: 'Our Seeds, Our Land',
+    year: '2024 — 2025',
+    meta: 'Architectural Association · Diploma 20 · Amazon, Ecuador',
+    tutors: 'Tutors: Davide Sacconi · Matteo Costanzo · Gianfranco Bombaci',
+    body: `<p>An investigation of the <em>chakra</em>, an Indigenous Amazonian agroforestry system, as both ancestral infrastructure and contemporary spatial strategy. The project proposes the reclamation of an abandoned government port at the edge of Yasuní National Park as a community processing space connected to the revival of the chakra — a living spatial and political model that resists extractive logics while sustaining relationships between humans, plants, territories and material life.</p>
+    <p>Developed through fieldwork in the Amazon, the project produced maps (monoculture, lithological, petroleum), aerial site analysis, drawings, cacao process diagrams, and the moving image essay <em>Modos de Habitar</em>.</p>`,
+    pos: [-26, 4.5, -14],
+    drawings: [
+      { label: 'Lithological map', svg: 'lithological' },
+      { label: 'Chakra plan', svg: 'chakra' },
+      { label: 'Site analysis', svg: 'contour', wide: true },
+    ],
+  },
+  {
+    id: 'dislocation',
+    num: '02',
+    title: 'Dislocation',
+    year: '2023 — 2024',
+    meta: 'Architectural Association · Diploma 5 · Amazon',
+    tutors: 'Tutors: Nana Biamah-Ofosu · Giles Tettey Nartey',
+    body: `<p>An exploration of decolonisation through ritual practices, oral traditions and cultural opacity in the Amazon — foregrounding the right of Indigenous communities to preserve and transmit knowledge on their own terms.</p>
+    <p>The project investigates clay as a medium of relation between body, ground and ancestry. Raw clay was sourced and processed at Hooke Park (AA) and shaped into prototypes that hold and burn palo santo — the cleansing device developed for the film <em>Sasi</em>. The smoke moves as a continuous fabric between human and territory.</p>`,
+    pos: [-12, 3.8, -28],
+    drawings: [
+      { label: 'Clay vessel', svg: 'vessel' },
+      { label: 'Smoke study', svg: 'smoke' },
+      { label: 'Ritual section', svg: 'section', wide: true },
+    ],
+  },
+  {
+    id: 'geography',
+    num: '03',
+    title: 'The Geography of My Last Emotions',
+    year: '2022',
+    meta: 'Confluence Institute · Paris',
+    tutors: 'Tutor: Joël Andrianomearisoa',
+    body: `<p>A phenomenological project mapping personal emotional states onto urban geography as abstract art pieces and drawings. Beginning from a list of questions — how could architecture be a fragrance, a gaze, a memory, a noise, a tradition? — the project develops a series of emotional cartographies across Quito, London, Beijing and Paris, translating colour, intensity and memory into spatial form.</p>`,
+    pos: [4, 4.2, -42],
+    drawings: [
+      { label: 'Quito', svg: 'emotion-1' },
+      { label: 'London', svg: 'emotion-2' },
+      { label: 'Beijing', svg: 'emotion-3' },
+      { label: 'Paris', svg: 'emotion-4' },
+    ],
+  },
+  {
+    id: 'films',
+    num: '04',
+    title: 'Moving Image',
+    year: '2024 — 2025',
+    meta: 'Modos de Habitar · Sasi',
+    tutors: 'Filmed in the Amazon',
+    body: `<p><em>Modos de Habitar</em> (<em>Modes of Inhabiting</em>) — a single-channel video essay tracing the conversion of the Amazon from living forest into commodified land: from canopy to harvest, from river to monoculture, from the human hand to the satellite scale.</p>
+    <p><em>Sasi</em> (<em>Cleansing</em>) — a 60-second single-channel video. A palo santo cleansing device, filmed in close-up. Developed alongside <em>Dislocation</em> as a meditation on smoke as a medium of cleansing, opacity, and ritual continuity in the Amazon.</p>`,
+    pos: [18, 4.8, -56],
+    drawings: [
+      { label: 'Modos de Habitar — still', svg: 'frame-1', wide: true },
+      { label: 'Sasi — still', svg: 'frame-2' },
+      { label: 'Film script', svg: 'script' },
+    ],
+  },
+  {
+    id: 'thesis',
+    num: '05',
+    title: 'Land, Life, and Law',
+    year: '2025',
+    meta: 'The Sarayaku Case · Honours thesis · AA',
+    tutors: 'Supervisor: Mercè Rodrigo García',
+    body: `<p>A written investigation into the 2012 <em>Sarayaku v. Ecuador</em> judgement of the Inter-American Court of Human Rights, examining the conceptual collision between Indigenous cosmology and Western property law in the protection of Amazonian ancestral territories.</p>
+    <p>The thesis traces the Kichwa concept of <em>Kawsak Sacha</em>, the living forest, and its encounter with a legal system founded on the notion of land as property. It asks how a Western legal framework can encounter a worldview in which the forest is not a thing to be owned but a being with its own life.</p>
+    <p>Drawing on Philippe Descola, Eduardo Viveiros de Castro, Paulo Tavares, Eyal Weizman and Peter Fitzpatrick.</p>`,
+    pos: [6, 5.4, -72],
+    drawings: [
+      { label: 'Sarayaku territory', svg: 'territory', wide: true },
+      { label: 'Cosmology diagram', svg: 'cosmology' },
+      { label: 'Law as line', svg: 'lines' },
+    ],
+  },
+  {
+    id: 'cabane',
+    num: '06',
+    title: 'Cabane Chiostro — Who Lives Here',
+    year: '2025',
+    meta: 'Académie de France à Rome — Villa Medici',
+    tutors: 'CAMPO · Diploma 20 · with Roger Ballen',
+    body: `<p>Built installation for <em>Festival des Cabanes</em> at the Académie de France à Rome — Villa Medici, by CAMPO and Diploma 20, Architectural Association, in collaboration with the South African artist Roger Ballen.</p>
+    <p>Presented as the architectural counterpart to Ballen's solo exhibition <em>Animalism</em> at Mattatoio di Roma. Selected through international competition as one of five international teams.</p>`,
+    pos: [-16, 4.8, -86],
+    drawings: [
+      { label: 'Cabane — axonometric', svg: 'axo', wide: true },
+      { label: 'Plan', svg: 'plan' },
+      { label: 'Roger Ballen collab', svg: 'ballen' },
+    ],
+  },
+];
+
+/* ---- Generative SVG drawings (placeholders that look intentional) ---- */
+const DRAWINGS = {
+  lithological: () => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs><pattern id="hatch1" patternUnits="userSpaceOnUse" width="4" height="4"><path d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2" stroke="rgba(236,228,212,0.5)" stroke-width=".5"/></pattern></defs>
+    <rect width="100" height="100" fill="rgba(236,228,212,0.03)"/>
+    <path d="M0,30 Q30,20 50,30 T100,30 L100,60 Q70,55 50,60 T0,60 Z" fill="url(#hatch1)" stroke="rgba(236,228,212,0.5)" stroke-width=".4"/>
+    <path d="M0,60 Q30,65 50,60 T100,60 L100,100 L0,100 Z" fill="rgba(236,228,212,0.08)" stroke="rgba(236,228,212,0.4)" stroke-width=".4"/>
+    <path d="M10,15 L20,18 M30,12 L42,14 M55,10 L70,15 M80,18 L90,20" stroke="rgba(236,228,212,0.5)" stroke-width=".4"/>
+  </svg>`,
+  chakra: () => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="rgba(236,228,212,0.03)"/>
+    ${Array.from({length:18}, (_,i) => {
+      const a = (i/18)*Math.PI*2, r = 20+Math.random()*18;
+      const x = 50+Math.cos(a)*r, y = 50+Math.sin(a)*r;
+      return `<circle cx="${x}" cy="${y}" r="${2+Math.random()*3}" fill="none" stroke="rgba(236,228,212,0.5)" stroke-width=".4"/>`;
+    }).join('')}
+    <circle cx="50" cy="50" r="6" fill="none" stroke="rgba(236,228,212,0.8)" stroke-width=".6"/>
+    <circle cx="50" cy="50" r="2.5" fill="rgba(212,165,116,0.8)"/>
+    ${Array.from({length:8}, (_,i) => {
+      const a = (i/8)*Math.PI*2;
+      return `<line x1="50" y1="50" x2="${50+Math.cos(a)*38}" y2="${50+Math.sin(a)*38}" stroke="rgba(236,228,212,0.25)" stroke-width=".3"/>`;
+    }).join('')}
+  </svg>`,
+  contour: () => `<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="100" fill="rgba(236,228,212,0.03)"/>
+    ${Array.from({length:14}, (_,i) => {
+      const y = 5 + i*7;
+      const wob = Math.sin(i*0.7)*3;
+      let path = `M0,${y+wob}`;
+      for (let x=5; x<=200; x+=5){
+        const yo = y + Math.sin(x*0.04 + i)*4 + wob;
+        path += ` L${x},${yo}`;
+      }
+      return `<path d="${path}" fill="none" stroke="rgba(236,228,212,${0.2 + (i%3==0?0.3:0)})" stroke-width=".4"/>`;
+    }).join('')}
+    <line x1="60" y1="0" x2="60" y2="100" stroke="rgba(212,165,116,0.6)" stroke-width=".3" stroke-dasharray="2 2"/>
+    <text x="62" y="10" font-family="monospace" font-size="6" fill="rgba(236,228,212,0.6)">A-A</text>
+  </svg>`,
+  vessel: () => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="rgba(236,228,212,0.03)"/>
+    <path d="M35,30 Q35,20 50,18 Q65,20 65,30 L62,75 Q62,82 50,82 Q38,82 38,75 Z" fill="none" stroke="rgba(236,228,212,0.6)" stroke-width=".6"/>
+    <path d="M35,30 Q50,33 65,30" fill="none" stroke="rgba(236,228,212,0.4)" stroke-width=".4"/>
+    <path d="M50,18 L50,82" stroke="rgba(212,165,116,0.4)" stroke-width=".3" stroke-dasharray="1 2"/>
+    ${Array.from({length:5}, (_,i) => `<ellipse cx="50" cy="${30+i*12}" rx="${14-i*0.5}" ry="2" fill="none" stroke="rgba(236,228,212,0.25)" stroke-width=".3"/>`).join('')}
+    <path d="M48,15 Q50,5 52,15 M47,12 Q50,2 53,12" fill="none" stroke="rgba(236,228,212,0.5)" stroke-width=".4"/>
+  </svg>`,
+  smoke: () => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="rgba(236,228,212,0.03)"/>
+    <circle cx="50" cy="85" r="3" fill="rgba(212,165,116,0.8)"/>
+    ${Array.from({length:20}, (_,i) => {
+      const t = i/20;
+      const cy = 85 - t*70;
+      const wob = Math.sin(t*Math.PI*3)*8 * t;
+      const r = 2 + t*15;
+      return `<circle cx="${50+wob}" cy="${cy}" r="${r}" fill="none" stroke="rgba(236,228,212,${0.5*(1-t)})" stroke-width=".3"/>`;
+    }).join('')}
+  </svg>`,
+  section: () => `<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="100" fill="rgba(236,228,212,0.03)"/>
+    <path d="M0,70 Q50,40 100,55 T200,50 L200,100 L0,100 Z" fill="rgba(236,228,212,0.08)" stroke="rgba(236,228,212,0.6)" stroke-width=".5"/>
+    <line x1="0" y1="70" x2="200" y2="55" stroke="rgba(236,228,212,0.3)" stroke-width=".3" stroke-dasharray="1 2"/>
+    <rect x="80" y="42" width="20" height="20" fill="none" stroke="rgba(212,165,116,0.7)" stroke-width=".4"/>
+    <line x1="80" y1="42" x2="80" y2="20" stroke="rgba(212,165,116,0.5)" stroke-width=".3"/>
+    <text x="78" y="18" font-family="monospace" font-size="5" fill="rgba(212,165,116,0.7)">cabin</text>
+    ${Array.from({length:30}, () => `<line x1="${Math.random()*200}" y1="${70+Math.random()*30}" x2="${Math.random()*200}" y2="${70+Math.random()*30}" stroke="rgba(236,228,212,0.12)" stroke-width=".2"/>`).join('')}
+  </svg>`,
+  'emotion-1': () => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="rgba(212,165,116,0.15)"/>
+    <circle cx="35" cy="35" r="18" fill="rgba(212,165,116,0.4)"/>
+    <circle cx="65" cy="60" r="22" fill="rgba(236,228,212,0.2)"/>
+    <text x="8" y="92" font-family="serif" font-style="italic" font-size="8" fill="rgba(236,228,212,0.8)">Quito</text>
+  </svg>`,
+  'emotion-2': () => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="rgba(60,80,90,0.4)"/>
+    <rect x="20" y="40" width="12" height="50" fill="rgba(236,228,212,0.2)"/>
+    <rect x="40" y="30" width="14" height="60" fill="rgba(236,228,212,0.25)"/>
+    <rect x="62" y="20" width="10" height="70" fill="rgba(236,228,212,0.2)"/>
+    <text x="8" y="92" font-family="serif" font-style="italic" font-size="8" fill="rgba(236,228,212,0.8)">London</text>
+  </svg>`,
+  'emotion-3': () => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="rgba(150,40,40,0.25)"/>
+    ${Array.from({length:8}, (_,i)=>`<line x1="${10+i*10}" y1="0" x2="${10+i*10}" y2="100" stroke="rgba(236,228,212,0.2)" stroke-width=".3"/>`).join('')}
+    <circle cx="50" cy="50" r="14" fill="rgba(236,228,212,0.3)"/>
+    <text x="8" y="92" font-family="serif" font-style="italic" font-size="8" fill="rgba(236,228,212,0.8)">Beijing</text>
+  </svg>`,
+  'emotion-4': () => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="rgba(80,90,110,0.3)"/>
+    <path d="M50,15 L55,40 L80,40 L60,55 L68,80 L50,65 L32,80 L40,55 L20,40 L45,40 Z" fill="rgba(236,228,212,0.3)"/>
+    <text x="8" y="92" font-family="serif" font-style="italic" font-size="8" fill="rgba(236,228,212,0.8)">Paris</text>
+  </svg>`,
+  'frame-1': () => `<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="100" fill="rgba(40,55,35,0.6)"/>
+    <path d="M0,40 Q50,45 100,38 T200,42 L200,100 L0,100 Z" fill="rgba(60,80,50,0.8)" stroke="rgba(236,228,212,0.3)" stroke-width=".4"/>
+    ${Array.from({length:30}, () => `<line x1="${Math.random()*200}" y1="${40+Math.random()*60}" x2="${Math.random()*200}" y2="${40+Math.random()*60}" stroke="rgba(236,228,212,0.15)" stroke-width=".2"/>`).join('')}
+    <rect x="5" y="5" width="14" height="6" fill="none" stroke="rgba(236,228,212,0.7)" stroke-width=".4"/>
+    <text x="7" y="10" font-family="monospace" font-size="4" fill="rgba(236,228,212,0.8)">REC</text>
+  </svg>`,
+  'frame-2': () => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="rgba(20,20,18,0.85)"/>
+    <radialGradient id="smk"><stop offset="0%" stop-color="rgba(236,228,212,0.5)"/><stop offset="100%" stop-color="rgba(236,228,212,0)"/></radialGradient>
+    <circle cx="50" cy="60" r="35" fill="url(#smk)"/>
+    <circle cx="50" cy="65" r="5" fill="rgba(212,165,116,0.9)"/>
+    <rect x="5" y="5" width="14" height="6" fill="none" stroke="rgba(236,228,212,0.7)" stroke-width=".4"/>
+    <text x="7" y="10" font-family="monospace" font-size="4" fill="rgba(236,228,212,0.8)">SASI</text>
+  </svg>`,
+  script: () => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="rgba(236,228,212,0.03)"/>
+    ${Array.from({length:14}, (_,i) => `<line x1="10" y1="${15+i*5.5}" x2="${30+Math.random()*55}" y2="${15+i*5.5}" stroke="rgba(236,228,212,${i%3==0?0.6:0.3})" stroke-width=".4"/>`).join('')}
+    <line x1="50" y1="10" x2="50" y2="95" stroke="rgba(212,165,116,0.4)" stroke-width=".3" stroke-dasharray="1 2"/>
+  </svg>`,
+  territory: () => `<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="100" fill="rgba(236,228,212,0.03)"/>
+    <path d="M30,20 L60,15 L90,25 L130,18 L170,30 L175,60 L160,85 L100,90 L40,80 L20,55 Z" fill="rgba(236,228,212,0.06)" stroke="rgba(236,228,212,0.7)" stroke-width=".6"/>
+    <path d="M50,40 Q90,35 120,50 T180,55" fill="none" stroke="rgba(212,165,116,0.7)" stroke-width=".5"/>
+    ${Array.from({length:25}, () => {
+      const x = 30+Math.random()*150, y = 20+Math.random()*70;
+      return `<circle cx="${x}" cy="${y}" r=".8" fill="rgba(236,228,212,0.5)"/>`;
+    }).join('')}
+    <text x="95" y="58" font-family="serif" font-style="italic" font-size="6" fill="rgba(212,165,116,0.9)">Sarayaku</text>
+  </svg>`,
+  cosmology: () => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="rgba(236,228,212,0.03)"/>
+    <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(236,228,212,0.5)" stroke-width=".5"/>
+    <circle cx="50" cy="50" r="28" fill="none" stroke="rgba(236,228,212,0.4)" stroke-width=".4"/>
+    <circle cx="50" cy="50" r="16" fill="none" stroke="rgba(236,228,212,0.5)" stroke-width=".4"/>
+    <circle cx="50" cy="50" r="4" fill="rgba(212,165,116,0.9)"/>
+    ${Array.from({length:6}, (_,i) => {
+      const a = (i/6)*Math.PI*2;
+      return `<line x1="50" y1="50" x2="${50+Math.cos(a)*40}" y2="${50+Math.sin(a)*40}" stroke="rgba(236,228,212,0.4)" stroke-width=".3"/>`;
+    }).join('')}
+    <text x="48" y="14" font-family="monospace" font-size="5" fill="rgba(236,228,212,0.7)">sky</text>
+    <text x="40" y="92" font-family="monospace" font-size="5" fill="rgba(236,228,212,0.7)">underworld</text>
+  </svg>`,
+  lines: () => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="rgba(236,228,212,0.03)"/>
+    ${Array.from({length:18}, (_,i) => {
+      const y = 10 + i*5;
+      return `<line x1="10" y1="${y}" x2="${15+Math.random()*70}" y2="${y}" stroke="rgba(236,228,212,${0.3+Math.random()*0.4})" stroke-width=".4"/>`;
+    }).join('')}
+    <line x1="55" y1="5" x2="55" y2="95" stroke="rgba(212,165,116,0.6)" stroke-width=".5"/>
+  </svg>`,
+  axo: () => `<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="100" fill="rgba(236,228,212,0.03)"/>
+    <path d="M70,75 L130,75 L150,55 L90,55 Z" fill="none" stroke="rgba(236,228,212,0.7)" stroke-width=".5"/>
+    <path d="M70,75 L70,40 L90,20 L150,20 L150,55" fill="none" stroke="rgba(236,228,212,0.7)" stroke-width=".5"/>
+    <path d="M90,20 L90,55 M130,75 L130,40 L150,20" fill="none" stroke="rgba(236,228,212,0.5)" stroke-width=".4"/>
+    <path d="M70,40 L130,40 L150,20 M90,55 L150,55" fill="none" stroke="rgba(236,228,212,0.4)" stroke-width=".3"/>
+    ${Array.from({length:6}, (_,i) => `<line x1="${75+i*12}" y1="55" x2="${75+i*12}" y2="75" stroke="rgba(236,228,212,0.3)" stroke-width=".3"/>`).join('')}
+    <text x="40" y="92" font-family="monospace" font-size="5" fill="rgba(236,228,212,0.7)">CABANE CHIOSTRO</text>
+  </svg>`,
+  plan: () => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="rgba(236,228,212,0.03)"/>
+    <rect x="25" y="25" width="50" height="50" fill="none" stroke="rgba(236,228,212,0.7)" stroke-width=".5"/>
+    <rect x="35" y="35" width="30" height="30" fill="none" stroke="rgba(236,228,212,0.5)" stroke-width=".4"/>
+    <line x1="50" y1="25" x2="50" y2="75" stroke="rgba(236,228,212,0.4)" stroke-width=".3"/>
+    <line x1="25" y1="50" x2="75" y2="50" stroke="rgba(236,228,212,0.4)" stroke-width=".3"/>
+    <circle cx="50" cy="50" r="3" fill="rgba(212,165,116,0.8)"/>
+  </svg>`,
+  ballen: () => `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="rgba(20,20,18,0.8)"/>
+    ${Array.from({length:40}, () => {
+      const x = Math.random()*100, y = Math.random()*100;
+      return `<line x1="${x}" y1="${y}" x2="${x+(Math.random()-0.5)*20}" y2="${y+(Math.random()-0.5)*20}" stroke="rgba(236,228,212,${0.3+Math.random()*0.5})" stroke-width=".4"/>`;
+    }).join('')}
+    <text x="8" y="92" font-family="monospace" font-size="6" fill="rgba(236,228,212,0.7)">R.BALLEN</text>
+  </svg>`,
+};
+
+/* ---- SCENE ---- */
+const wrap = document.getElementById('canvas-wrap');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+wrap.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#20261b');
+scene.fog = new THREE.Fog('#20261b', 40, 160);
+
+const camera = new THREE.PerspectiveCamera(46, window.innerWidth/window.innerHeight, 0.1, 500);
+
+scene.add(new THREE.AmbientLight(0xffffff, 1));
+
+/* terrain math */
+function noise(x, z){
+  return (
+    Math.sin(x*0.16) * Math.cos(z*0.14) * 1.6 +
+    Math.sin(x*0.07 + 1.7) * 1.2 +
+    Math.cos(z*0.11 + 0.5) * 1.0 +
+    Math.sin((x+z)*0.05) * 0.7
+  );
+}
+function riverDepth(x, z){
+  const meander = Math.sin(z*0.05) * 9 + Math.sin(z*0.13)*3.5;
+  const d = Math.abs(x - meander);
+  return Math.exp(-d*d/40) * 3.0;
+}
+function getHeight(x, z){ return noise(x, z) - riverDepth(x, z); }
+function riverX(z){ return Math.sin(z*0.05) * 9 + Math.sin(z*0.13)*3.5; }
+
+/* solid dark ground beneath the line drawing (so we don't see through) */
+{
+  const g = new THREE.PlaneGeometry(220, 280, 80, 100);
+  g.rotateX(-Math.PI/2);
+  const pos = g.attributes.position;
+  for (let i=0; i<pos.count; i++){
+    const x = pos.getX(i), z = pos.getZ(i);
+    pos.setY(i, getHeight(x, z) - 0.2);
+  }
+  pos.needsUpdate = true;
+  g.computeVertexNormals();
+  const m = new THREE.MeshBasicMaterial({ color: 0x2a3024, transparent: true, opacity: 0.92 });
+  const mesh = new THREE.Mesh(g, m);
+  mesh.position.set(0, 0, -50);
+  scene.add(mesh);
+}
+
+/* ---- WHITE topography contour lines ---- */
+{
+  const main = new THREE.LineBasicMaterial({ color: 0xece4d4, transparent: true, opacity: 0.7 });
+  const mid  = new THREE.LineBasicMaterial({ color: 0xece4d4, transparent: true, opacity: 0.38 });
+  const faint= new THREE.LineBasicMaterial({ color: 0xece4d4, transparent: true, opacity: 0.18 });
+
+  const zRows = [];
+  for (let z = -130; z <= 50; z += 1.6) zRows.push(z);
+
+  zRows.forEach((zRow, idx) => {
+    const pts = [];
+    for (let x = -80; x <= 80; x += 0.7){
+      const wob = Math.sin(x*0.1 + zRow*0.05)*0.3;
+      const y = getHeight(x, zRow + wob) + 0.04;
+      pts.push(new THREE.Vector3(x, y, zRow + wob));
+    }
+    const g = new THREE.BufferGeometry().setFromPoints(pts);
+    let mat;
+    if (idx % 5 === 0) mat = main;
+    else if (idx % 2 === 0) mat = mid;
+    else mat = faint;
+    scene.add(new THREE.Line(g, mat));
+  });
+
+  // a few perpendicular sketch lines too for a hand-drawn density
+  for (let x = -70; x <= 70; x += 10){
+    const pts = [];
+    for (let z = -120; z <= 50; z += 1.5){
+      const y = getHeight(x, z) + 0.03;
+      pts.push(new THREE.Vector3(x, y, z));
+    }
+    scene.add(new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({ color: 0xece4d4, transparent: true, opacity: 0.12 })
+    ));
+  }
+}
+
+/* ---- river — drawn in pale warm tone ---- */
+{
+  const riverPts = [];
+  for (let z = -130; z <= 50; z += 0.5){
+    const x = riverX(z);
+    const y = getHeight(x, z) + 0.06;
+    riverPts.push(new THREE.Vector3(x, y, z));
+  }
+  scene.add(new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(riverPts),
+    new THREE.LineBasicMaterial({ color: 0xece4d4, transparent: true, opacity: 0.95 })
+  ));
+  // bank
+  [-0.6, 0.6].forEach(off => {
+    const pts = riverPts.map(p => new THREE.Vector3(p.x + off, p.y + 0.02, p.z));
+    scene.add(new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({ color: 0xece4d4, transparent: true, opacity: 0.5 })
+    ));
+  });
+}
+
+/* ---- vegetation as drawn line forms (sparse, accent here and there) ---- */
+function drawPlant(x, z, scale = 1){
+  const ground = getHeight(x, z);
+  const g = new THREE.Group();
+  const m = new THREE.LineBasicMaterial({ color: 0xece4d4, transparent: true, opacity: 0.42 });
+  // tiny tree: trunk + 3 fronds
+  const h = (0.8 + Math.random()*0.6)*scale;
+  scene.add(new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(x, ground, z),
+      new THREE.Vector3(x, ground+h, z),
+    ]), m
+  ));
+  for (let f=0; f<3; f++){
+    const a = (f/3)*Math.PI*2 + Math.random();
+    const pts = [];
+    for (let i=0; i<=6; i++){
+      const t = i/6;
+      pts.push(new THREE.Vector3(
+        x + Math.cos(a)*t*0.5*scale,
+        ground + h - t*t*0.3*scale,
+        z + Math.sin(a)*t*0.5*scale
+      ));
+    }
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), m));
+  }
+}
+
+{
+  const placed = [];
+  function tooClose(x, z, minDist=4){
+    for (const p of placed){
+      const dx = p.x - x, dz = p.z - z;
+      if (dx*dx + dz*dz < minDist*minDist) return true;
+    }
+    return false;
+  }
+  let tries = 0;
+  while (placed.length < 70 && tries < 1500){
+    tries++;
+    const x = (Math.random()-0.5)*120;
+    const z = -125 + Math.random()*175;
+    if (Math.abs(x - riverX(z)) < 4) continue;
+    let nearMarker = false;
+    for (const p of PROJECTS){
+      const dx = p.pos[0] - x, dz = p.pos[2] - z;
+      if (dx*dx + dz*dz < 30) { nearMarker = true; break; }
+    }
+    if (nearMarker) continue;
+    if (tooClose(x, z, 4)) continue;
+    placed.push({x, z});
+    drawPlant(x, z, 0.7 + Math.random()*0.5);
+  }
+}
+
+/* ---- crosshair markers in 3D ---- */
+const markerObjects = [];
+PROJECTS.forEach((p) => {
+  const [x, y, z] = p.pos;
+  const ground = getHeight(x, z) + 0.05;
+
+  // cross marker on the ground
+  const len = 1.2;
+  const arm1 = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(x-len, ground, z), new THREE.Vector3(x+len, ground, z),
+  ]);
+  const arm2 = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(x, ground, z-len), new THREE.Vector3(x, ground, z+len),
+  ]);
+  const crossMat = new THREE.LineBasicMaterial({ color: 0xece4d4, transparent: true, opacity: 0.85 });
+  const a1 = new THREE.Line(arm1, crossMat);
+  const a2 = new THREE.Line(arm2, crossMat);
+  scene.add(a1); scene.add(a2);
+
+  // surrounding circle
+  const circlePts = [];
+  for (let i=0; i<=64; i++){
+    const a = (i/64)*Math.PI*2;
+    circlePts.push(new THREE.Vector3(x + Math.cos(a)*1.0, ground, z + Math.sin(a)*1.0));
+  }
+  const circleMat = new THREE.LineBasicMaterial({ color: 0xece4d4, transparent: true, opacity: 0.45 });
+  const circle = new THREE.Line(new THREE.BufferGeometry().setFromPoints(circlePts), circleMat);
+  scene.add(circle);
+
+  markerObjects.push({ project: p, ground: new THREE.Vector3(x, ground, z), crossMat, circleMat });
+});
+
+/* ---- CAMERA — static framing of the whole basin, like the reference image ---- */
+// The camera sits up-and-back, looking across the basin so all six crosshairs are visible.
+const CAM_BASE = new THREE.Vector3(-2, 26, 30);
+const LOOK_BASE = new THREE.Vector3(-2, 0, -50);
+camera.position.copy(CAM_BASE);
+camera.lookAt(LOOK_BASE);
+
+// Tiny scroll-driven offset: camera slides horizontally a touch as you change project, no big motion
+function camOffsetForProject(idx){
+  // each project pulls camera slightly toward its x
+  const t = idx / Math.max(1, PROJECTS.length - 1); // 0..1
+  return new THREE.Vector3(
+    THREE.MathUtils.lerp(-6, 6, t),  // ±6 of x drift
+    0,
+    THREE.MathUtils.lerp(0, -8, t)   // a tiny dolly forward as you advance
+  );
+}
+function lookOffsetForProject(idx){
+  const p = PROJECTS[idx];
+  // gently bias the look-at toward the active project
+  return new THREE.Vector3(
+    p.pos[0]*0.25,
+    0,
+    (p.pos[2] - LOOK_BASE.z) * 0.1
+  );
+}
+
+/* ---- SCROLL → project index ---- */
+const HERO_END = 0.06;  // 0-6% is hero
+let scrollT = 0;
+let displayT = 0;
+let activeFloat = 0;       // float index, smoothed
+let activeIdx = 0;
+
+function updateScroll(){
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  scrollT = Math.max(0, Math.min(1, window.scrollY / Math.max(1, max)));
+}
+window.addEventListener('scroll', updateScroll, { passive:true });
+
+/* mouse parallax */
+let mouseX = 0, mouseY = 0;
+window.addEventListener('mousemove', e => {
+  mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+  mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+});
+
+/* ---- jump to project ---- */
+function projectScrollT(idx){
+  // distribute projects across the post-hero range
+  const tInRange = (idx + 0.5) / PROJECTS.length;
+  return HERO_END + tInRange * (1 - HERO_END);
+}
+function jumpToProject(idx){
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  window.scrollTo({ top: projectScrollT(idx) * max, behavior: 'smooth' });
+}
+
+/* ---- panel rendering ---- */
+const panel = document.getElementById('panel');
+PROJECTS.forEach((p, i) => {
+  const slide = document.createElement('div');
+  slide.className = 'panel-slide';
+  slide.dataset.idx = i;
+
+  let drawingsHTML = '';
+  if (p.drawings && p.drawings.length){
+    drawingsHTML = `
+      <div class="p-drawings">
+        <div class="p-drawings-label">Selected drawings</div>
+        <div class="p-drawing-grid">
+          ${p.drawings.map(d => {
+            const inner = d.img
+              ? `<img src="${d.img}" alt="${d.label}">`
+              : (DRAWINGS[d.svg] ? DRAWINGS[d.svg]() : '');
+            return `<div class="p-drawing${d.wide?' wide':''}">${inner}<div class="p-drawing-label">${d.label}</div></div>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  slide.innerHTML = `
+    <div class="p-num">[ F-Stage ${p.num} ]</div>
+    <div class="p-title">${p.title}</div>
+    <div class="p-meta">${p.year} · ${p.meta}<br>${p.tutors}</div>
+    <div class="p-body">${p.body}</div>
+    ${drawingsHTML}
+  `;
+  panel.appendChild(slide);
+});
+
+/* ---- side nav ---- */
+const navHost = document.getElementById('navlist');
+PROJECTS.forEach((p, i) => {
+  const a = document.createElement('a');
+  a.dataset.idx = i;
+  a.innerHTML = `<span class="num">${p.num}</span><span class="name">${p.title}</span>`;
+  a.addEventListener('click', () => jumpToProject(i));
+  navHost.appendChild(a);
+});
+
+document.getElementById('brand-link').addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+/* ---- crosshair click — also jumps to project ---- */
+// We'll do this via raycasting on the screen position (more reliable than 3D raycast for small lines)
+window.addEventListener('click', (e) => {
+  if (e.target.closest('.panel') || e.target.closest('.navlist') || e.target.closest('.hud')) return;
+  const w = window.innerWidth, h = window.innerHeight;
+  const tmp = new THREE.Vector3();
+  let bestIdx = -1, bestDist = 40;
+  markerObjects.forEach((m, i) => {
+    tmp.copy(m.ground);
+    tmp.project(camera);
+    const x = (tmp.x*0.5 + 0.5) * w;
+    const y = (-tmp.y*0.5 + 0.5) * h;
+    const d = Math.hypot(x - e.clientX, y - e.clientY);
+    if (d < bestDist){ bestDist = d; bestIdx = i; }
+  });
+  if (bestIdx >= 0) jumpToProject(bestIdx);
+});
+
+/* ---- resize ---- */
+function onResize(){
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  const svg = document.getElementById('annotations-svg');
+  svg.setAttribute('viewBox', `0 0 ${window.innerWidth} ${window.innerHeight}`);
+}
+window.addEventListener('resize', onResize);
+onResize();
+
+/* ---- annotation column drawing (SVG overlay) ---- */
+function drawAnnotations(active){
+  const svg = document.getElementById('annotations-svg');
+  const w = window.innerWidth;
+  const tmp = new THREE.Vector3();
+  let svgInner = '';
+  markerObjects.forEach((m, i) => {
+    tmp.copy(m.ground);
+    tmp.project(camera);
+    if (tmp.z > 1) return;
+    const x = (tmp.x*0.5 + 0.5) * window.innerWidth;
+    const y = (-tmp.y*0.5 + 0.5) * window.innerHeight;
+    const isActive = i === active;
+    const topY = 70 + i*0; // vary per project? keep simple
+    const cls = isActive ? 'active' : '';
+    // vertical line
+    svgInner += `<line class="col-line ${cls}" x1="${x}" y1="${y - 4}" x2="${x}" y2="${topY + 24}"/>`;
+    // tick at top
+    svgInner += `<line class="col-tick ${cls}" x1="${x - 5}" y1="${topY + 24}" x2="${x + 5}" y2="${topY + 24}"/>`;
+    // small label
+    const label = `F-Stage ${PROJECTS[i].num}`;
+    svgInner += `<text class="${cls}" x="${x + 9}" y="${topY + 27}">${label}</text>`;
+    // crosshair label below
+    svgInner += `<text class="${cls}" x="${x + 9}" y="${y + 4}" style="font-size:8px;">0${PROJECTS[i].num}</text>`;
+  });
+  svg.innerHTML = svgInner;
+}
+
+/* ---- tick ---- */
+function tick(){
+  // smooth scroll
+  displayT += (scrollT - displayT) * 0.08;
+
+  // hero fade
+  const hero = document.getElementById('hero');
+  if (displayT > 0.015) hero.classList.add('fade');
+  else hero.classList.remove('fade');
+
+  // reveal HUD
+  const reveal = displayT > 0.02;
+  document.getElementById('hud-top').classList.toggle('visible', reveal);
+  document.getElementById('hud-bottom').classList.toggle('visible', reveal);
+  document.getElementById('navlist').classList.toggle('visible', reveal);
+  panel.classList.toggle('visible', reveal);
+
+  // figure out active project (float and int)
+  let af;
+  if (displayT < HERO_END) af = 0;
+  else af = ((displayT - HERO_END) / (1 - HERO_END)) * PROJECTS.length - 0.5;
+  activeFloat = Math.max(0, Math.min(PROJECTS.length - 1, af));
+  activeIdx = Math.round(activeFloat);
+
+  // pan camera slightly toward active project
+  const off = camOffsetForProject(activeFloat);
+  const lookOff = lookOffsetForProject(activeIdx);
+
+  camera.position.set(
+    CAM_BASE.x + off.x + mouseX * 0.6,
+    CAM_BASE.y + off.y + (-mouseY * 0.3),
+    CAM_BASE.z + off.z
+  );
+  camera.lookAt(
+    LOOK_BASE.x + lookOff.x + mouseX * 0.4,
+    LOOK_BASE.y + lookOff.y + (-mouseY * 0.2),
+    LOOK_BASE.z + lookOff.z
+  );
+
+  // panel slide active
+  Array.from(panel.children).forEach((slide, i) => {
+    slide.classList.toggle('active', i === activeIdx);
+  });
+  // crosshair active highlight (color them via material)
+  markerObjects.forEach((m, i) => {
+    const isAct = i === activeIdx;
+    m.crossMat.opacity = isAct ? 1 : 0.45;
+    m.crossMat.color.set(isAct ? 0xe8b88a : 0xece4d4);
+    m.circleMat.opacity = isAct ? 0.9 : 0.25;
+    m.circleMat.color.set(isAct ? 0xd4a574 : 0xece4d4);
+  });
+
+  // side nav
+  Array.from(navHost.children).forEach((a, i) => {
+    a.classList.toggle('active', i === activeIdx);
+  });
+
+  // progress
+  const p = PROJECTS[activeIdx];
+  document.getElementById('prog-num').textContent = `0${activeIdx+1} / 0${PROJECTS.length} — ${p.title.toUpperCase()}`;
+  document.getElementById('prog-fill').style.width = (displayT*100).toFixed(1) + '%';
+
+  drawAnnotations(activeIdx);
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+tick();
+
+setTimeout(() => {
+  document.getElementById('loader').classList.add('gone');
+  setTimeout(()=> document.getElementById('loader').remove(), 900);
+}, 1100);
+
+updateScroll();
+</script>
+</body>
+</html>
