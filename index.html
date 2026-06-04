@@ -328,6 +328,13 @@
     display: block;
     opacity: 0.92;
   }
+  .p-drawing video{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    background: #000;
+  }
   .p-drawing svg{
     width: 100%;
     height: 100%;
@@ -538,9 +545,9 @@ const PROJECTS = [
     <p>Developed through fieldwork in the Amazon, the project produced maps (monoculture, lithological, petroleum), aerial site analysis, drawings, cacao process diagrams, and the moving image essay <em>Modos de Habitar</em>.</p>`,
     pos: [-26, 4.5, -14],
     drawings: [
-      { label: 'Lithological map', svg: 'lithological' },
-      { label: 'Chakra plan', svg: 'chakra' },
-      { label: 'Site analysis', svg: 'contour', wide: true },
+      { label: 'Hybrid section', img: 'images/our-seeds-section.jpg' },
+      { label: 'Masterplan', img: 'images/our-seeds-masterplan.jpg' },
+      { label: 'Monoculture map', img: 'images/our-seeds-monoculture.jpg', wide: true },
     ],
   },
   {
@@ -554,9 +561,9 @@ const PROJECTS = [
     <p>The project investigates clay as a medium of relation between body, ground and ancestry. Raw clay was sourced and processed at Hooke Park (AA) and shaped into prototypes that hold and burn palo santo — the cleansing device developed for the film <em>Sasi</em>. The smoke moves as a continuous fabric between human and territory.</p>`,
     pos: [-12, 3.8, -28],
     drawings: [
-      { label: 'Clay vessel', svg: 'vessel' },
-      { label: 'Smoke study', svg: 'smoke' },
-      { label: 'Ritual section', svg: 'section', wide: true },
+      { label: 'Smoke ritual interior', img: 'images/dislocation-ritual.jpg' },
+      { label: 'Axonometric & cosmology', img: 'images/dislocation-axo.jpg' },
+      { label: 'Riverine structure', img: 'images/dislocation-renders.jpg', wide: true },
     ],
   },
   {
@@ -569,10 +576,9 @@ const PROJECTS = [
     body: `<p>A phenomenological project mapping personal emotional states onto urban geography as abstract art pieces and drawings. Beginning from a list of questions — how could architecture be a fragrance, a gaze, a memory, a noise, a tradition? — the project develops a series of emotional cartographies across Quito, London, Beijing and Paris, translating colour, intensity and memory into spatial form.</p>`,
     pos: [4, 4.2, -42],
     drawings: [
-      { label: 'Quito', svg: 'emotion-1' },
-      { label: 'London', svg: 'emotion-2' },
-      { label: 'Beijing', svg: 'emotion-3' },
-      { label: 'Paris', svg: 'emotion-4' },
+      { label: 'Emotional landscape', img: 'images/geography-landscape.jpg' },
+      { label: 'Design process', img: 'images/geography-process.jpg' },
+      { label: 'Emotional mapping', img: 'images/geography-mapping.jpg', wide: true },
     ],
   },
   {
@@ -586,9 +592,8 @@ const PROJECTS = [
     <p><em>Sasi</em> (<em>Cleansing</em>) — a 60-second single-channel video. A palo santo cleansing device, filmed in close-up. Developed alongside <em>Dislocation</em> as a meditation on smoke as a medium of cleansing, opacity, and ritual continuity in the Amazon.</p>`,
     pos: [18, 4.8, -56],
     drawings: [
-      { label: 'Modos de Habitar — still', svg: 'frame-1', wide: true },
-      { label: 'Sasi — still', svg: 'frame-2' },
-      { label: 'Film script', svg: 'script' },
+      { label: 'Modos de Habitar', video: 'images/modos.mp4', poster: 'images/modos-poster.jpg', wide: true },
+      { label: 'Sasi', video: 'images/sasi.mp4', poster: 'images/sasi-poster.jpg', wide: true },
     ],
   },
   {
@@ -603,9 +608,9 @@ const PROJECTS = [
     <p>Drawing on Philippe Descola, Eduardo Viveiros de Castro, Paulo Tavares, Eyal Weizman and Peter Fitzpatrick.</p>`,
     pos: [6, 5.4, -72],
     drawings: [
-      { label: 'Sarayaku territory', svg: 'territory', wide: true },
-      { label: 'Cosmology diagram', svg: 'cosmology' },
-      { label: 'Law as line', svg: 'lines' },
+      { label: 'Inter-American Court', img: 'images/thesis-court.jpg', wide: true },
+      { label: 'Sí al Yasuní', img: 'images/thesis-yasuni.jpg' },
+      { label: 'Colonial cartography', img: 'images/thesis-map.jpg' },
     ],
   },
   {
@@ -1007,13 +1012,20 @@ function camOffsetForProject(idx){
     THREE.MathUtils.lerp(0, -8, t)   // a tiny dolly forward as you advance
   );
 }
-function lookOffsetForProject(idx){
-  const p = PROJECTS[idx];
+function lookOffsetForProject(f){
+  // f is a FLOAT index — interpolate between neighbouring projects so the
+  // camera's gaze glides through the landscape instead of snapping per project
+  const i0 = Math.floor(f);
+  const i1 = Math.min(PROJECTS.length - 1, i0 + 1);
+  const frac = f - i0;
+  const a = PROJECTS[i0].pos, b = PROJECTS[i1].pos;
+  const px = a[0] + (b[0] - a[0]) * frac;
+  const pz = a[2] + (b[2] - a[2]) * frac;
   // gently bias the look-at toward the active project
   return new THREE.Vector3(
-    p.pos[0]*0.25,
+    px * 0.25,
     0,
-    (p.pos[2] - LOOK_BASE.z) * 0.1
+    (pz - LOOK_BASE.z) * 0.1
   );
 }
 
@@ -1062,9 +1074,11 @@ PROJECTS.forEach((p, i) => {
         <div class="p-drawings-label">Selected drawings</div>
         <div class="p-drawing-grid">
           ${p.drawings.map(d => {
-            const inner = d.img
-              ? `<img src="${d.img}" alt="${d.label}">`
-              : (DRAWINGS[d.svg] ? DRAWINGS[d.svg]() : '');
+            const inner = d.video
+              ? `<video src="${d.video}"${d.poster?` poster="${d.poster}"`:''} controls playsinline preload="metadata"></video>`
+              : (d.img
+                ? `<img src="${d.img}" alt="${d.label}">`
+                : (DRAWINGS[d.svg] ? DRAWINGS[d.svg]() : ''));
             return `<div class="p-drawing${d.wide?' wide':''}">${inner}<div class="p-drawing-label">${d.label}</div></div>`;
           }).join('')}
         </div>
@@ -1179,7 +1193,7 @@ function tick(){
 
   // pan camera slightly toward active project
   const off = camOffsetForProject(activeFloat);
-  const lookOff = lookOffsetForProject(activeIdx);
+  const lookOff = lookOffsetForProject(activeFloat);
 
   camera.position.set(
     CAM_BASE.x + off.x + mouseX * 0.6,
