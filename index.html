@@ -624,9 +624,9 @@ const PROJECTS = [
     <p>Presented as the architectural counterpart to Ballen's solo exhibition <em>Animalism</em> at Mattatoio di Roma. Selected through international competition as one of five international teams.</p>`,
     pos: [-16, 4.8, -86],
     drawings: [
-      { label: 'Cabane — axonometric', svg: 'axo', wide: true },
-      { label: 'Plan', svg: 'plan' },
-      { label: 'Roger Ballen collab', svg: 'ballen' },
+      { label: 'Festival des Cabanes — Villa Medici', img: 'images/cabane-final.jpg', wide: true },
+      { label: 'Woven canopy', img: 'images/cabane-canopy.jpg' },
+      { label: 'Construction', img: 'images/cabane-build.jpg' },
     ],
   },
 ];
@@ -1002,31 +1002,43 @@ const LOOK_BASE = new THREE.Vector3(-2, 0, -50);
 camera.position.copy(CAM_BASE);
 camera.lookAt(LOOK_BASE);
 
-// Tiny scroll-driven offset: camera slides horizontally a touch as you change project, no big motion
-function camOffsetForProject(idx){
-  // each project pulls camera slightly toward its x
-  const t = idx / Math.max(1, PROJECTS.length - 1); // 0..1
-  return new THREE.Vector3(
-    THREE.MathUtils.lerp(-6, 6, t),  // ±6 of x drift
-    0,
-    THREE.MathUtils.lerp(0, -8, t)   // a tiny dolly forward as you advance
-  );
-}
-function lookOffsetForProject(f){
-  // f is a FLOAT index — interpolate between neighbouring projects so the
-  // camera's gaze glides through the landscape instead of snapping per project
+/* ---- CAMERA FLY-PATH ----
+   One "station" per project, sitting above-and-back from each crosshair and
+   looking down into it. Scrolling flies the camera down through the 3D basin
+   and zooms into each location, weaving left/right for a dynamic, dimensional feel. */
+function easeInOut(t){ t = Math.max(0, Math.min(1, t)); return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2; }
+
+const stations = markerObjects.map((m, i) => {
+  const g = m.ground;
+  const side = (i % 2 === 0 ? -1 : 1) * 9;        // weave left / right
+  return {
+    pos:  new THREE.Vector3(g.x + side, g.y + 7.5, g.z + 17),  // close, above & back → reads as zoom-in
+    look: new THREE.Vector3(g.x, g.y + 0.9, g.z - 5),          // gaze just past the marker, into depth
+  };
+});
+// wide establishing shot for the hero (very top of page)
+const HERO_CAM  = new THREE.Vector3(-2, 27, 36);
+const HERO_LOOK = new THREE.Vector3(-2, 2, -58);
+
+const _camPos  = new THREE.Vector3().copy(HERO_CAM);
+const _camLook = new THREE.Vector3().copy(HERO_LOOK);
+
+function flyTarget(){
+  if (displayT < HERO_END){
+    const t = easeInOut(displayT / HERO_END);     // ease from wide shot into station 0
+    return {
+      pos:  HERO_CAM.clone().lerp(stations[0].pos, t),
+      look: HERO_LOOK.clone().lerp(stations[0].look, t),
+    };
+  }
+  const f = activeFloat;
   const i0 = Math.floor(f);
-  const i1 = Math.min(PROJECTS.length - 1, i0 + 1);
-  const frac = f - i0;
-  const a = PROJECTS[i0].pos, b = PROJECTS[i1].pos;
-  const px = a[0] + (b[0] - a[0]) * frac;
-  const pz = a[2] + (b[2] - a[2]) * frac;
-  // gently bias the look-at toward the active project
-  return new THREE.Vector3(
-    px * 0.25,
-    0,
-    (pz - LOOK_BASE.z) * 0.1
-  );
+  const i1 = Math.min(stations.length - 1, i0 + 1);
+  const frac = easeInOut(f - i0);                 // decelerate into each station = settle/zoom
+  return {
+    pos:  stations[i0].pos.clone().lerp(stations[i1].pos, frac),
+    look: stations[i0].look.clone().lerp(stations[i1].look, frac),
+  };
 }
 
 /* ---- SCROLL → project index ---- */
@@ -1170,7 +1182,7 @@ function drawAnnotations(active){
 /* ---- tick ---- */
 function tick(){
   // smooth scroll
-  displayT += (scrollT - displayT) * 0.08;
+  displayT += (scrollT - displayT) * 0.09;
 
   // hero fade
   const hero = document.getElementById('hero');
@@ -1191,20 +1203,18 @@ function tick(){
   activeFloat = Math.max(0, Math.min(PROJECTS.length - 1, af));
   activeIdx = Math.round(activeFloat);
 
-  // pan camera slightly toward active project
-  const off = camOffsetForProject(activeFloat);
-  const lookOff = lookOffsetForProject(activeFloat);
-
-  camera.position.set(
-    CAM_BASE.x + off.x + mouseX * 0.6,
-    CAM_BASE.y + off.y + (-mouseY * 0.3),
-    CAM_BASE.z + off.z
-  );
-  camera.lookAt(
-    LOOK_BASE.x + lookOff.x + mouseX * 0.4,
-    LOOK_BASE.y + lookOff.y + (-mouseY * 0.2),
-    LOOK_BASE.z + lookOff.z
-  );
+  // fly the camera down into the active project's location
+  const tgt = flyTarget();
+  // gentle mouse parallax for life and depth (no disorientation)
+  tgt.pos.x  += mouseX * 1.4;
+  tgt.pos.y  += -mouseY * 0.7;
+  tgt.look.x += mouseX * 0.7;
+  tgt.look.y += -mouseY * 0.3;
+  // extra damping → a silky, cinematic glide
+  _camPos.lerp(tgt.pos, 0.12);
+  _camLook.lerp(tgt.look, 0.12);
+  camera.position.copy(_camPos);
+  camera.lookAt(_camLook);
 
   // panel slide active
   Array.from(panel.children).forEach((slide, i) => {
