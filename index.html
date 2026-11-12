@@ -483,7 +483,17 @@
   .overlay .close{position:fixed;right:25px;top:20px;border:0;background:transparent;color:var(--text);font:12px 'JetBrains Mono',monospace;cursor:pointer;padding:10px}
   .overlay .cv-link{display:inline-block;margin-top:24px;padding:13px 18px;border:1px solid var(--line-soft);color:var(--text);text-decoration:none;font:11px 'JetBrains Mono',monospace;letter-spacing:.1em}
   .overlay .cv-link:hover{color:var(--accent);border-color:var(--accent)}
-  #media-overlay img,#media-overlay video{max-width:100%;max-height:75vh;object-fit:contain;display:block;margin:auto}
+  #media-overlay{z-index:130;padding:55px 70px 35px;overflow:hidden}
+  #media-overlay.open{display:flex}
+  #media-overlay .overlay-inner{width:100%;max-width:none;max-height:100%;height:100%;overflow:hidden;display:flex;flex-direction:column;justify-content:center;align-items:center}
+  #media-overlay img,#media-overlay video{width:auto;height:auto;max-width:100%;max-height:calc(100dvh - 175px);object-fit:contain;display:block;margin:auto}
+  #media-overlay .media-caption{margin-top:12px;font:11px 'JetBrains Mono',monospace;color:var(--text-soft);text-align:center}
+  .gallery-nav{position:fixed;top:50%;transform:translateY(-50%);z-index:3;border:1px solid var(--line-soft);border-radius:50%;width:46px;height:46px;background:rgba(32,38,27,.9);color:var(--text);font:27px 'Cormorant Garamond',serif;cursor:pointer}
+  .gallery-nav:hover{color:var(--accent);border-color:var(--accent)}
+  .gallery-nav.prev{left:15px}.gallery-nav.next{right:15px}
+  .gallery-count{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);font:10px 'JetBrains Mono',monospace;letter-spacing:.14em;color:var(--text-soft)}
+  .gallery-hint{position:fixed;bottom:24px;right:24px;font:9px 'JetBrains Mono',monospace;color:var(--text-soft)}
+  @media(max-width:650px){#media-overlay{padding:64px 15px 70px}#media-overlay img,#media-overlay video{max-height:calc(100dvh - 190px)}.gallery-nav{top:auto;bottom:15px;transform:none;width:40px;height:40px}.gallery-nav.prev{left:20px}.gallery-nav.next{right:20px}.gallery-hint{display:none}.gallery-count{bottom:30px}}
   #media-overlay .media-caption{margin-top:12px;font:11px 'JetBrains Mono',monospace;color:var(--text-soft)}
   .p-drawing[data-fullscreen]{cursor:zoom-in}
   .film-expand{position:absolute;top:8px;right:8px;background:rgba(32,38,27,.88);color:var(--text);border:1px solid var(--line-soft);padding:7px 9px;font:9px 'JetBrains Mono',monospace;cursor:pointer;z-index:2}
@@ -549,7 +559,11 @@
 </div>
 <div class="overlay" id="media-overlay" role="dialog" aria-modal="true" aria-label="Expanded media">
  <button type="button" class="close" data-close="media-overlay">Close ×</button>
+ <button type="button" class="gallery-nav prev" id="gallery-prev" aria-label="Previous drawing or film">‹</button>
  <div class="overlay-inner" id="media-inner"></div>
+ <button type="button" class="gallery-nav next" id="gallery-next" aria-label="Next drawing or film">›</button>
+ <div class="gallery-count" id="gallery-count" aria-live="polite"></div>
+ <div class="gallery-hint">← → Navigate · Esc Close</div>
 </div>
 
 <div class="overlay project-overlay" id="project-overlay" role="dialog" aria-modal="true" aria-label="Full-screen project">
@@ -1179,7 +1193,7 @@ document.getElementById('about-open').addEventListener('click', () => showOverla
 document.getElementById('films-open').addEventListener('click', () => jumpToProject(PROJECTS.findIndex(p => p.id === 'films')));
 document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => closeOverlay(document.getElementById(btn.dataset.close))));
 [aboutOverlay,mediaOverlay,projectOverlay].forEach(el => el.addEventListener('click', e => { if(e.target === el) closeOverlay(el); }));
-window.addEventListener('keydown', e => { if(e.key === 'Escape') [aboutOverlay,mediaOverlay,projectOverlay].forEach(closeOverlay); });
+window.addEventListener('keydown', e => { if(e.key !== 'Escape') return; if(mediaOverlay.classList.contains('open')) closeOverlay(mediaOverlay); else if(projectOverlay.classList.contains('open')) closeOverlay(projectOverlay); else if(aboutOverlay.classList.contains('open')) closeOverlay(aboutOverlay); });
 function openFullProject(index){
   const slide = panel.querySelector(`.panel-slide[data-idx="${index}"]`);
   if (!slide) return;
@@ -1193,31 +1207,75 @@ function openFullProject(index){
   showOverlay(projectOverlay);
   projectOverlay.scrollTop=0;
 }
-function openMediaFromClick(e){
-  const expand = e.target.closest('[data-video-fullscreen]');
-  if (expand) {
-    panel.querySelectorAll('video').forEach(v => v.pause());
-    projectFullInner.querySelectorAll('video').forEach(v => v.pause());
-    const vid = document.createElement('video');
-    vid.src = expand.dataset.videoFullscreen;
-    vid.poster = expand.dataset.poster;
-    vid.controls = true; vid.playsInline = true; vid.preload = 'metadata';
-    mediaInner.replaceChildren(vid);
-    const caption = document.createElement('div'); caption.className = 'media-caption'; caption.textContent = expand.dataset.caption;
-    mediaInner.appendChild(caption);
-    showOverlay(mediaOverlay);
-    return;
+/* Full-screen project gallery: click any drawing or expand any film;
+   use arrows, keyboard arrows, or horizontal swipes to browse that project's media. */
+let galleryItems = [];
+let galleryIndex = 0;
+function renderGallery(){
+  const d = galleryItems[galleryIndex];
+  if(!d) return;
+  mediaInner.querySelector('video')?.pause();
+  const media = document.createElement(d.video ? 'video' : 'img');
+  if(d.video){
+    media.src = d.video;
+    if(d.poster) media.poster = d.poster;
+    media.controls = true; media.playsInline = true; media.preload = 'metadata';
+  }else{
+    media.src = d.img;
+    media.alt = d.label || 'Project drawing';
   }
-  const tile = e.target.closest('[data-fullscreen]');
-  if (!tile || e.target.closest('button')) return;
-  const img = document.createElement('img');
-  img.src = tile.dataset.fullscreen;
-  img.alt = tile.dataset.caption || 'Project drawing';
   const caption = document.createElement('div');
-  caption.className = 'media-caption'; caption.textContent = tile.dataset.caption || '';
-  mediaInner.replaceChildren(img,caption);
+  caption.className = 'media-caption';
+  caption.textContent = d.label || '';
+  mediaInner.replaceChildren(media,caption);
+  document.getElementById('gallery-count').textContent = `${String(galleryIndex+1).padStart(2,'0')} / ${String(galleryItems.length).padStart(2,'0')}`;
+  const multiple = galleryItems.length > 1;
+  document.getElementById('gallery-prev').hidden = !multiple;
+  document.getElementById('gallery-next').hidden = !multiple;
+}
+function stepGallery(delta){
+  if(!mediaOverlay.classList.contains('open') || galleryItems.length < 2) return;
+  galleryIndex = (galleryIndex + delta + galleryItems.length) % galleryItems.length;
+  renderGallery();
+}
+function openMediaFromClick(e){
+  const videoButton = e.target.closest('[data-video-fullscreen]');
+  const tile = e.target.closest('.p-drawing');
+  if(!videoButton && (!tile || !tile.dataset.fullscreen || e.target.closest('button'))) return;
+  const projectSlide = e.currentTarget === panel
+    ? tile?.closest('.panel-slide') || videoButton?.closest('.panel-slide')
+    : projectFullInner.querySelector('.project-full-content');
+  const idx = projectSlide ? Number(projectSlide.dataset.idx) : -1;
+  const project = PROJECTS[idx];
+  if(!project) return;
+  galleryItems = project.drawings.filter(d => d.img || d.video);
+  const src = videoButton ? videoButton.dataset.videoFullscreen : tile.dataset.fullscreen;
+  galleryIndex = Math.max(0,galleryItems.findIndex(d => (d.video || d.img) === src));
+  panel.querySelectorAll('video').forEach(v=>v.pause());
+  projectFullInner.querySelectorAll('video').forEach(v=>v.pause());
+  renderGallery();
   showOverlay(mediaOverlay);
 }
+document.getElementById('gallery-prev').addEventListener('click',()=>stepGallery(-1));
+document.getElementById('gallery-next').addEventListener('click',()=>stepGallery(1));
+window.addEventListener('keydown', e => {
+  if(!mediaOverlay.classList.contains('open')) return;
+  if(e.key==='ArrowLeft' || e.key==='ArrowRight'){
+    e.preventDefault(); stepGallery(e.key==='ArrowRight'?1:-1);
+  }
+});
+let touchStartX = null, touchStartY = null;
+mediaOverlay.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1)return;
+  touchStartX=e.touches[0].clientX;touchStartY=e.touches[0].clientY;
+},{passive:true});
+mediaOverlay.addEventListener('touchend',e=>{
+  if(touchStartX===null || e.changedTouches.length!==1)return;
+  const dx=e.changedTouches[0].clientX-touchStartX;
+  const dy=e.changedTouches[0].clientY-touchStartY;
+  touchStartX=null;touchStartY=null;
+  if(Math.abs(dx)>55 && Math.abs(dx)>Math.abs(dy)*1.25)stepGallery(dx<0?1:-1);
+},{passive:true});
 panel.addEventListener('click', e => {
   const opener = e.target.closest('[data-project-open]');
   if(opener){ openFullProject(Number(opener.dataset.projectOpen)); return; }
