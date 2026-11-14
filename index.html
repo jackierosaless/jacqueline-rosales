@@ -273,31 +273,6 @@
     color: var(--text);
     margin-bottom: 14px;
   }
-  /* High-contrast project identity, legible over the moving landscape */
-  .panel-slide .p-title{
-    display:block;
-    background: #ece4d4;
-    color:#20261b;
-    padding: 13px 16px 15px;
-    margin: 10px 0 18px -12px;
-    border-left: 4px solid #d4a574;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 1.02;
-    text-wrap: balance;
-  }
-  .panel-slide .p-body{color:#f3eee5;font-size:17px;line-height:1.55}
-  .panel-slide .p-meta{color:#e5d9c8}
-  .panel-slide .p-num{color:#e8b88a}
-  .panel-slide .p-drawing-grid{grid-template-columns:1fr 1fr}
-  .panel-slide .p-drawing.wide{grid-column:1/-1}
-  @media(max-width:600px){
-    .panel{top:94px;bottom:108px;width:92vw;right:4vw}
-    .panel-slide{padding:15px 15px 24px 19px}
-    .panel-slide .p-title{font-size:clamp(30px,8vw,40px);margin-left:-8px;padding:12px}
-    .panel-slide .p-body{font-size:16px}
-    .hud-top .hud-meta{display:none}
-  }
   .p-meta{
     font-family:'JetBrains Mono', monospace;
     font-size: 9.5px;
@@ -371,9 +346,11 @@
   .p-drawing img{height:auto;width:100%;object-fit:contain;opacity:1}
   .p-drawing video{height:auto;width:100%;aspect-ratio:16/9;object-fit:contain}
   .p-drawing-label{position:static;display:block;padding:9px 10px;background:rgba(32,38,27,.82);font-size:9px;letter-spacing:.1em}
-  .panel-slide .p-drawing{max-height:48vh;overflow:hidden}
-  .panel-slide .p-drawing img{max-height:43vh;object-fit:contain}
+  .panel-slide .p-drawing{max-height:none;overflow:hidden}
+  .panel-slide .p-drawing img{max-height:48vh;object-fit:contain}
   .p-drawing[data-fullscreen]{cursor:zoom-in}
+  .p-drawing.image-unavailable{min-height:90px;border:1px dashed #b78364}
+  .p-drawing.image-unavailable img{min-height:75px;font:12px monospace;color:#e9d5c2}
 
   .p-drawing-label{
     position: absolute;
@@ -530,6 +507,8 @@
   @media(max-width:650px){#media-overlay{padding:64px 15px 70px}#media-overlay img,#media-overlay video{max-height:calc(100dvh - 190px)}.gallery-nav{top:auto;bottom:15px;transform:none;width:40px;height:40px}.gallery-nav.prev{left:20px}.gallery-nav.next{right:20px}.gallery-hint{display:none}.gallery-count{bottom:30px}}
   #media-overlay .media-caption{margin-top:12px;font:11px 'JetBrains Mono',monospace;color:var(--text-soft)}
   .p-drawing[data-fullscreen]{cursor:zoom-in}
+  .p-drawing.image-unavailable{min-height:90px;border:1px dashed #b78364}
+  .p-drawing.image-unavailable img{min-height:75px;font:12px monospace;color:#e9d5c2}
   .film-expand{position:absolute;top:8px;right:8px;background:rgba(32,38,27,.88);color:var(--text);border:1px solid var(--line-soft);padding:7px 9px;font:9px 'JetBrains Mono',monospace;cursor:pointer;z-index:2}
   .film-expand:hover{color:var(--accent);border-color:var(--accent)}
   @media(max-width:600px){.utility-nav{top:auto;bottom:76px;left:50%;white-space:nowrap}.overlay{padding:58px 22px 30px}}
@@ -1253,17 +1232,17 @@ function jumpToProject(idx){
    Add more objects to its `drawings` array to populate the full project
    and swipeable media gallery without crowding the preview.
 */
-const IMAGE_THUMBNAILS = {"images/chakra-site-plan.jpg":"images/thumbs/chakra-site-plan.jpg","images/agricity-ra-gallery.jpg":"images/thumbs/agricity-ra-gallery.jpg","images/geography-09-paris.jpg":"images/thumbs/geography-09-paris.jpg","images/chakra-05-storage.jpg":"images/thumbs/chakra-05-storage.jpg","images/geography-10-happiness-connections.jpg":"images/thumbs/geography-10-happiness-connections.jpg","images/geography-11-sadness-connections.jpg":"images/thumbs/geography-11-sadness-connections.jpg","images/chakra-site-growth-poster.jpg":"images/thumbs/chakra-site-growth-poster.jpg","images/chakra-06-grinding.jpg":"images/thumbs/chakra-06-grinding.jpg","images/chakra-01-gathering.jpg":"images/thumbs/chakra-01-gathering.jpg","images/geography-12-happiness-plan.jpg":"images/thumbs/geography-12-happiness-plan.jpg","images/geography-06-quito.jpg":"images/thumbs/geography-06-quito.jpg","images/chakra-04-canopy.jpg":"images/thumbs/chakra-04-canopy.jpg","images/sasi-poster.jpg":"images/thumbs/sasi-poster.jpg","images/geography-02-museum-section.jpg":"images/thumbs/geography-02-museum-section.jpg","images/garden-proposal.jpg":"images/thumbs/garden-proposal.jpg","images/pixelar-poster.jpg":"images/thumbs/pixelar-poster.jpg","images/garden-coral-growth.jpg":"images/thumbs/garden-coral-growth.jpg","images/garden-growth-study.jpg":"images/thumbs/garden-growth-study.jpg","images/geography-03-exploded-axonometric.png":"images/thumbs/geography-03-exploded-axonometric.jpg","images/agricity-ra-display.jpg":"images/thumbs/agricity-ra-display.jpg","images/garden-collage-concept.jpg":"images/thumbs/garden-collage-concept.jpg","images/agricity-ra-model-portrait.jpg":"images/thumbs/agricity-ra-model-portrait.jpg","images/agricity-ra-exterior.jpg":"images/thumbs/agricity-ra-exterior.jpg","images/chakra-species.png":"images/thumbs/chakra-species.jpg","images/geography-08-beijing.jpg":"images/thumbs/geography-08-beijing.jpg","images/garden-lsystem-growth.jpg":"images/thumbs/garden-lsystem-growth.jpg","images/modos-poster.jpg":"images/thumbs/modos-poster.jpg","images/chakra-orellana-map.png":"images/thumbs/chakra-orellana-map.jpg","images/geography-13-sadness-plan.jpg":"images/thumbs/geography-13-sadness-plan.jpg","images/chakra-manual.jpg":"images/thumbs/chakra-manual.jpg","images/garden-detailed-section.jpg":"images/thumbs/garden-detailed-section.jpg","images/garden-urban-section.jpg":"images/thumbs/garden-urban-section.jpg","images/geography-01-site-circulation.jpg":"images/thumbs/geography-01-site-circulation.jpg","images/garden-technical-plan.jpg":"images/thumbs/garden-technical-plan.jpg","images/chakra-03-drying.jpg":"images/thumbs/chakra-03-drying.jpg","images/garden-coral-mapping.jpg":"images/thumbs/garden-coral-mapping.jpg","images/garden-technical-details.jpg":"images/thumbs/garden-technical-details.jpg","images/geography-04-emotional-study.jpg":"images/thumbs/geography-04-emotional-study.jpg","images/agricity-model.jpg":"images/thumbs/agricity-model.jpg","images/agricity-city.jpg":"images/thumbs/agricity-city.jpg","images/garden-technical-axonometric.jpg":"images/thumbs/garden-technical-axonometric.jpg","images/modos-de-habitar-poster.jpg":"images/thumbs/modos-de-habitar-poster.jpg","images/chakra-02-processing.jpg":"images/thumbs/chakra-02-processing.jpg","images/geography-05-colour-key.jpg":"images/thumbs/geography-05-colour-key.jpg","images/chakra-shushufindi-map.png":"images/thumbs/chakra-shushufindi-map.jpg","images/agricity-model-detail.jpg":"images/thumbs/agricity-model-detail.jpg","images/geography-07-london.jpg":"images/thumbs/geography-07-london.jpg","images/agricity-aerial.jpg":"images/thumbs/agricity-aerial.jpg","images/geography-14-museum-site.png":"images/thumbs/geography-14-museum-site.jpg"};
+const IMAGE_THUMBNAILS = {}; // Direct image paths: no separate thumbs folder required.
 function projectMediaHTML(d){
   const inner = d.video
     ? `<video src="${d.video}"${d.poster?` poster="${d.poster}"`:''} controls playsinline preload="none"></video>`
-    : (d.img ? `<img src="${IMAGE_THUMBNAILS[d.img] || d.img}" alt="${d.label || 'Project image'}" loading="eager" decoding="async">` : (DRAWINGS[d.svg] ? DRAWINGS[d.svg]() : ''));
+    : (d.img ? `<img src="${IMAGE_THUMBNAILS[d.img] || d.img}" alt="${d.label || 'Project image'}" loading="eager" decoding="async" onerror="this.onerror=null;this.closest('.p-drawing').classList.add('image-unavailable');this.alt='Image unavailable — check file in images folder'">` : (DRAWINGS[d.svg] ? DRAWINGS[d.svg]() : ''));
   return `<div class="p-drawing${d.wide?' wide':''}" ${d.img ? `data-fullscreen="${d.img}" data-caption="${d.label}"` : ''}>${inner}<div class="p-drawing-label">${d.label || ''}</div>${d.video ? `<button class="film-expand" type="button" data-video-fullscreen="${d.video}" data-poster="${d.poster||''}" data-caption="${d.label}">Expand film ↗</button>` : ''}</div>`;
 }
 function projectMarkup(p, index, expanded=false){
   const all = p.drawings || [];
-  const media = expanded ? all : all.slice(0, 1);
-  const mediaHTML = media.length ? `<div class="p-drawings"><div class="p-drawings-label">${expanded ? 'Project drawings · Click to enlarge · Use arrows to browse' : 'Selected drawing · Click to enlarge'}</div><div class="p-drawing-grid">${media.map(projectMediaHTML).join('')}</div></div>` : '';
+  const media = expanded ? all : all.slice(0, 3);
+  const mediaHTML = media.length ? `<div class="p-drawings"><div class="p-drawings-label">${expanded ? 'Project drawings · Click to enlarge · Use arrows to browse' : 'Selected drawings · Click to enlarge'}</div><div class="p-drawing-grid">${media.map(projectMediaHTML).join('')}</div></div>` : '';
   return `<div class="project-text" data-project-text="${index}">
     ${!expanded ? `<button type="button" class="project-open" data-project-open="${index}">Explore project ↗</button>` : ''}
     <div class="p-num">${p.num} / ${String(PROJECTS.length).padStart(2,'0')}</div>
@@ -1461,30 +1440,34 @@ onResize();
 function drawAnnotations(active){
   const svg = document.getElementById('annotations-svg');
   const w = window.innerWidth;
+  const h = window.innerHeight;
   const tmp = new THREE.Vector3();
+  const points = [];
+  markerObjects.forEach((m,i)=>{
+    tmp.copy(m.ground).project(camera);
+    if(tmp.z > 1) return;
+    points.push({i,x:(tmp.x*.5+.5)*w,y:(-tmp.y*.5+.5)*h});
+  });
+  // Preserve the varied line heights of the original landscape, while preventing
+  // long project titles from landing on top of one another.
+  const occupied = [];
   let svgInner = '';
-  markerObjects.forEach((m, i) => {
-    tmp.copy(m.ground);
-    tmp.project(camera);
-    if (tmp.z > 1) return;
-    const x = (tmp.x*0.5 + 0.5) * window.innerWidth;
-    const y = (-tmp.y*0.5 + 0.5) * window.innerHeight;
-    const isActive = i === active;
-    // Give every landscape title its own row instead of placing all at y=70.
-    // Keep text within the viewport, including on narrow screens.
-    const rowHeight = 24;
-    const topY = 54 + i * rowHeight;
-    const labelX = Math.max(14, Math.min(x + 9, w - 285));
-    const cls = isActive ? 'active' : '';
-    // vertical line
-    svgInner += `<line class="col-line ${cls}" x1="${x}" y1="${y - 4}" x2="${x}" y2="${topY + 24}"/>`;
-    // tick at top
-    svgInner += `<line class="col-tick ${cls}" x1="${x - 5}" y1="${topY + 24}" x2="${x + 5}" y2="${topY + 24}"/>`;
-    // small label
-    const label = PROJECTS[i].title;
-    svgInner += `<text class="${cls}" x="${labelX}" y="${topY + 27}">${label}</text>`;
-    // crosshair label below
-    svgInner += `<text class="${cls}" x="${x + 9}" y="${y + 4}" style="font-size:8px;">${PROJECTS[i].num}</text>`;
+  points.sort((a,b)=>a.x-b.x).forEach(({i,x,y})=>{
+    const title = PROJECTS[i].title;
+    const width = Math.min(300,Math.max(105,title.length*5.7));
+    const labelX = Math.max(12,Math.min(x+9,w-width-12));
+    let labelY = 73 + (i%4)*33;
+    for(let tries=0;tries<18;tries++){
+      if(!occupied.some(p=>Math.abs(p.y-labelY)<22 && labelX<p.x+p.width+10 && labelX+width>p.x-10))break;
+      labelY += 24;
+      if(labelY>Math.min(h*.48,330))labelY=58;
+    }
+    occupied.push({x:labelX,y:labelY,width});
+    const cls = i===active?'active':'';
+    svgInner += `<line class="col-line ${cls}" x1="${x}" y1="${y-4}" x2="${x}" y2="${labelY-3}"/>`;
+    svgInner += `<line class="col-tick ${cls}" x1="${x-5}" y1="${labelY-3}" x2="${x+5}" y2="${labelY-3}"/>`;
+    svgInner += `<text class="${cls}" x="${labelX}" y="${labelY}">${title}</text>`;
+    svgInner += `<text class="${cls}" x="${x+9}" y="${y+4}" style="font-size:8px;">${PROJECTS[i].num}</text>`;
   });
   svg.innerHTML = svgInner;
 }
