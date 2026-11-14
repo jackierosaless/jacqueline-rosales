@@ -244,7 +244,7 @@
     transition: opacity .5s ease, transform .5s ease;
     pointer-events: none;
     /* paper-grain backdrop */
-    background: linear-gradient(180deg, rgba(32,38,27,0.0) 0%, rgba(32,38,27,0.45) 30%, rgba(32,38,27,0.55) 100%);
+    background: linear-gradient(180deg, rgba(24,31,22,0.96) 0%, rgba(24,31,22,0.92) 60%, rgba(24,31,22,0.95) 100%);
     border-left: 1px solid rgba(236,228,212,0.18);
   }
   .panel-slide.active{
@@ -267,11 +267,36 @@
   .p-title{
     font-family:'Cormorant Garamond', serif;
     font-weight: 500; font-style: italic;
-    font-size: clamp(28px, 3.2vw, 42px);
+    font-size: clamp(36px, 3.8vw, 54px);
     line-height: 1.02;
     letter-spacing: -0.01em;
     color: var(--text);
     margin-bottom: 14px;
+  }
+  /* High-contrast project identity, legible over the moving landscape */
+  .panel-slide .p-title{
+    display:block;
+    background: #ece4d4;
+    color:#20261b;
+    padding: 13px 16px 15px;
+    margin: 10px 0 18px -12px;
+    border-left: 4px solid #d4a574;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 1.02;
+    text-wrap: balance;
+  }
+  .panel-slide .p-body{color:#f3eee5;font-size:17px;line-height:1.55}
+  .panel-slide .p-meta{color:#e5d9c8}
+  .panel-slide .p-num{color:#e8b88a}
+  .panel-slide .p-drawing-grid{grid-template-columns:1fr 1fr}
+  .panel-slide .p-drawing.wide{grid-column:1/-1}
+  @media(max-width:600px){
+    .panel{top:94px;bottom:108px;width:92vw;right:4vw}
+    .panel-slide{padding:15px 15px 24px 19px}
+    .panel-slide .p-title{font-size:clamp(30px,8vw,40px);margin-left:-8px;padding:12px}
+    .panel-slide .p-body{font-size:16px}
+    .hud-top .hud-meta{display:none}
   }
   .p-meta{
     font-family:'JetBrains Mono', monospace;
@@ -340,7 +365,16 @@
     height: 100%;
     display: block;
   }
-  .p-drawing.wide{ grid-column: span 2; aspect-ratio: 16/9; }
+  .p-drawing.wide{ grid-column: span 2; aspect-ratio: auto; }
+  .p-drawing-grid{grid-template-columns:1fr;gap:18px}
+  .p-drawing,.p-drawing.wide{grid-column:1;aspect-ratio:auto;display:block;min-height:0}
+  .p-drawing img{height:auto;width:100%;object-fit:contain;opacity:1}
+  .p-drawing video{height:auto;width:100%;aspect-ratio:16/9;object-fit:contain}
+  .p-drawing-label{position:static;display:block;padding:9px 10px;background:rgba(32,38,27,.82);font-size:9px;letter-spacing:.1em}
+  .panel-slide .p-drawing{max-height:48vh;overflow:hidden}
+  .panel-slide .p-drawing img{max-height:43vh;object-fit:contain}
+  .p-drawing[data-fullscreen]{cursor:zoom-in}
+
   .p-drawing-label{
     position: absolute;
     bottom: 6px; left: 8px;
@@ -587,7 +621,7 @@
 
 <footer class="hud hud-bottom" id="hud-bottom">
   <div class="progress">
-    <div class="progress-num" id="prog-num">01 / 07 — OUR SEEDS, OUR LAND</div>
+    <div class="progress-num" id="prog-num">01 / 08 — OUR SEEDS, OUR LAND</div>
     <div class="progress-bar"><div class="fill" id="prog-fill" style="width:0%"></div></div>
   </div>
   <div class="scroll-cue">Scroll to advance · Click crosshair to expand</div>
@@ -651,9 +685,6 @@ const PROJECTS = [
     <p>The project investigates clay as a medium of relation between body, ground and ancestry. Raw clay was sourced and processed at Hooke Park (AA) and shaped into prototypes that hold and burn palo santo — the cleansing device developed for the film <em>Sasi</em>. The smoke moves as a continuous fabric between human and territory.</p>`,
     pos: [-12, 3.8, -28],
     drawings: [
-      { label: 'Smoke ritual interior', img: 'images/dislocation-ritual.jpg' },
-      { label: 'Axonometric & cosmology', img: 'images/dislocation-axo.jpg' },
-      { label: 'Riverine structure', img: 'images/dislocation-renders.jpg', wide: true },
     ],
   },
   {
@@ -663,12 +694,24 @@ const PROJECTS = [
     year: '2022',
     meta: 'Confluence Institute · Paris',
     tutors: 'Tutor: Joël Andrianomearisoa',
-    body: `<p>A phenomenological project mapping personal emotional states onto urban geography as abstract art pieces and drawings. Beginning from a list of questions — how could architecture be a fragrance, a gaze, a memory, a noise, a tradition? — the project develops a series of emotional cartographies across Quito, London, Beijing and Paris, translating colour, intensity and memory into spatial form.</p>`,
+    body: `<p><em>The Geography of My Last Emotions</em> investigates how personal memory and emotional attachment can be translated into spatial and topographic form. A series of emotional cartographies maps happiness, hope, sadness, love and anger across Quito, London, Beijing and Paris, using colour and the density of contour lines to register intensity and connection.</p>
+    <p>These individual landscapes are layered and connected across cities to produce a collective geography of remembered places. The research is then tested around London's Natural History Museum in South Kensington, where flows between cultural institutions and a woven architectural intervention explore how invisible emotional territories might become spatial experiences.</p>`,
     pos: [4, 4.2, -42],
     drawings: [
-      { label: 'Emotional landscape', img: 'images/geography-landscape.jpg' },
-      { label: 'Design process', img: 'images/geography-process.jpg' },
-      { label: 'Emotional mapping', img: 'images/geography-mapping.jpg', wide: true },
+      { label: 'Natural History Museum · exploded architectural axonometric', img: 'images/geography-03-exploded-axonometric.png', wide: true },
+      { label: 'South Kensington · cultural connections and circulation', img: 'images/geography-01-site-circulation.jpg', wide: true },
+      { label: 'Natural History Museum · proposed woven structure in section', img: 'images/geography-02-museum-section.jpg', wide: true },
+      { label: 'Natural History Museum · site emotional topographies', img: 'images/geography-14-museum-site.png', wide: true },
+      { label: 'Emotional landscape · mapping study', img: 'images/geography-04-emotional-study.jpg', wide: true },
+      { label: 'Emotional map · colour and topographic key', img: 'images/geography-05-colour-key.jpg', wide: true },
+      { label: 'Quito · emotional map', img: 'images/geography-06-quito.jpg', wide: true },
+      { label: 'London · emotional map', img: 'images/geography-07-london.jpg', wide: true },
+      { label: 'Beijing · emotional map', img: 'images/geography-08-beijing.jpg', wide: true },
+      { label: 'Paris · emotional map', img: 'images/geography-09-paris.jpg', wide: true },
+      { label: 'Happiness · connections between cities', img: 'images/geography-10-happiness-connections.jpg', wide: true },
+      { label: 'Sadness · connections between cities', img: 'images/geography-11-sadness-connections.jpg', wide: true },
+      { label: 'Happiness · spatial plan', img: 'images/geography-12-happiness-plan.jpg', wide: true },
+      { label: 'Sadness · spatial plan', img: 'images/geography-13-sadness-plan.jpg', wide: true },
     ],
   },
   {
@@ -700,9 +743,6 @@ const PROJECTS = [
     <p>Drawing on Philippe Descola, Eduardo Viveiros de Castro, Paulo Tavares, Eyal Weizman and Peter Fitzpatrick.</p>`,
     pos: [6, 5.4, -72],
     drawings: [
-      { label: 'Inter-American Court', img: 'images/thesis-court.jpg', wide: true },
-      { label: 'Sí al Yasuní', img: 'images/thesis-yasuni.jpg' },
-      { label: 'Colonial cartography', img: 'images/thesis-map.jpg' },
     ],
   },
   {
@@ -716,9 +756,6 @@ const PROJECTS = [
     <p>Presented as the architectural counterpart to Ballen's solo exhibition <em>Animalism</em> at Mattatoio di Roma. Selected through international competition as one of five international teams.</p>`,
     pos: [-16, 4.8, -86],
     drawings: [
-      { label: 'Festival des Cabanes — Villa Medici', img: 'images/cabane-final.jpg', wide: true },
-      { label: 'Woven canopy', img: 'images/cabane-canopy.jpg' },
-      { label: 'Construction', img: 'images/cabane-build.jpg' },
     ],
   },
   {
@@ -741,6 +778,31 @@ const PROJECTS = [
       { label: 'Agricity model on display — Royal Academy exhibition', img: 'images/agricity-ra-display.jpg', wide: true },
       { label: 'Exhibition installation — model in gallery context', img: 'images/agricity-ra-gallery.jpg', wide: true },
       { label: 'Agricity model — exhibition photograph', img: 'images/agricity-ra-model-portrait.jpg', wide: true },
+    ],
+  },
+  {
+    id: 'cultivate-garden',
+    num: '08',
+    title: 'Let Us Cultivate Our Garden',
+    year: 'Selected academic work',
+    meta: 'Downtown Los Angeles · Urban planning',
+    tutors: 'Architectural proposal · Urban growth and environmental systems',
+    body: `<p><em>Let Us Cultivate Our Garden</em> investigates how an urban intervention in Downtown Los Angeles can become a framework for growth rather than a fixed object. The proposal explores the relationship between the existing city, its built fabric and the possibility of introducing a new, cultivated spatial system.</p>
+    <p>Studies of growth patterns, branching structures and environmental systems inform a layered architectural form. The project brings together urban-scale analysis, sectional development and technical investigations to imagine how architecture might create space for ecological processes within the dense city.</p>
+    <p>The gallery brings together the urban proposition, coral-inspired growth and connectivity studies, city-scale sections, architectural plans and technical axonometrics.</p>`,
+    pos: [-11, 4.5, -116],
+    drawings: [
+      { label: 'Let Us Cultivate Our Garden · Urban proposal', img: 'images/garden-proposal.jpg', wide: true },
+      { label: 'Growth systems and environmental studies', img: 'images/garden-growth-study.jpg', wide: true },
+      { label: 'Technical axonometrics and architectural details', img: 'images/garden-technical-details.jpg', wide: true },
+      { label: 'Urban intervention · Concept collage', img: 'images/garden-collage-concept.jpg', wide: true },
+      { label: 'Urban landscape · Coral mapping', img: 'images/garden-coral-mapping.jpg', wide: true },
+      { label: 'Urban growth · Long section', img: 'images/garden-urban-section.jpg', wide: true },
+      { label: 'Architectural section · Detail', img: 'images/garden-detailed-section.jpg', wide: true },
+      { label: 'L-system · Growth studies', img: 'images/garden-lsystem-growth.jpg', wide: true },
+      { label: 'Coral geometry · Shape connectivity', img: 'images/garden-coral-growth.jpg', wide: true },
+      { label: 'Technical floor plan', img: 'images/garden-technical-plan.jpg', wide: true },
+      { label: 'Technical axonometric · Structural studies', img: 'images/garden-technical-axonometric.jpg', wide: true },
     ],
   },
 ];
@@ -1191,16 +1253,17 @@ function jumpToProject(idx){
    Add more objects to its `drawings` array to populate the full project
    and swipeable media gallery without crowding the preview.
 */
+const IMAGE_THUMBNAILS = {"images/chakra-site-plan.jpg":"images/thumbs/chakra-site-plan.jpg","images/agricity-ra-gallery.jpg":"images/thumbs/agricity-ra-gallery.jpg","images/geography-09-paris.jpg":"images/thumbs/geography-09-paris.jpg","images/chakra-05-storage.jpg":"images/thumbs/chakra-05-storage.jpg","images/geography-10-happiness-connections.jpg":"images/thumbs/geography-10-happiness-connections.jpg","images/geography-11-sadness-connections.jpg":"images/thumbs/geography-11-sadness-connections.jpg","images/chakra-site-growth-poster.jpg":"images/thumbs/chakra-site-growth-poster.jpg","images/chakra-06-grinding.jpg":"images/thumbs/chakra-06-grinding.jpg","images/chakra-01-gathering.jpg":"images/thumbs/chakra-01-gathering.jpg","images/geography-12-happiness-plan.jpg":"images/thumbs/geography-12-happiness-plan.jpg","images/geography-06-quito.jpg":"images/thumbs/geography-06-quito.jpg","images/chakra-04-canopy.jpg":"images/thumbs/chakra-04-canopy.jpg","images/sasi-poster.jpg":"images/thumbs/sasi-poster.jpg","images/geography-02-museum-section.jpg":"images/thumbs/geography-02-museum-section.jpg","images/garden-proposal.jpg":"images/thumbs/garden-proposal.jpg","images/pixelar-poster.jpg":"images/thumbs/pixelar-poster.jpg","images/garden-coral-growth.jpg":"images/thumbs/garden-coral-growth.jpg","images/garden-growth-study.jpg":"images/thumbs/garden-growth-study.jpg","images/geography-03-exploded-axonometric.png":"images/thumbs/geography-03-exploded-axonometric.jpg","images/agricity-ra-display.jpg":"images/thumbs/agricity-ra-display.jpg","images/garden-collage-concept.jpg":"images/thumbs/garden-collage-concept.jpg","images/agricity-ra-model-portrait.jpg":"images/thumbs/agricity-ra-model-portrait.jpg","images/agricity-ra-exterior.jpg":"images/thumbs/agricity-ra-exterior.jpg","images/chakra-species.png":"images/thumbs/chakra-species.jpg","images/geography-08-beijing.jpg":"images/thumbs/geography-08-beijing.jpg","images/garden-lsystem-growth.jpg":"images/thumbs/garden-lsystem-growth.jpg","images/modos-poster.jpg":"images/thumbs/modos-poster.jpg","images/chakra-orellana-map.png":"images/thumbs/chakra-orellana-map.jpg","images/geography-13-sadness-plan.jpg":"images/thumbs/geography-13-sadness-plan.jpg","images/chakra-manual.jpg":"images/thumbs/chakra-manual.jpg","images/garden-detailed-section.jpg":"images/thumbs/garden-detailed-section.jpg","images/garden-urban-section.jpg":"images/thumbs/garden-urban-section.jpg","images/geography-01-site-circulation.jpg":"images/thumbs/geography-01-site-circulation.jpg","images/garden-technical-plan.jpg":"images/thumbs/garden-technical-plan.jpg","images/chakra-03-drying.jpg":"images/thumbs/chakra-03-drying.jpg","images/garden-coral-mapping.jpg":"images/thumbs/garden-coral-mapping.jpg","images/garden-technical-details.jpg":"images/thumbs/garden-technical-details.jpg","images/geography-04-emotional-study.jpg":"images/thumbs/geography-04-emotional-study.jpg","images/agricity-model.jpg":"images/thumbs/agricity-model.jpg","images/agricity-city.jpg":"images/thumbs/agricity-city.jpg","images/garden-technical-axonometric.jpg":"images/thumbs/garden-technical-axonometric.jpg","images/modos-de-habitar-poster.jpg":"images/thumbs/modos-de-habitar-poster.jpg","images/chakra-02-processing.jpg":"images/thumbs/chakra-02-processing.jpg","images/geography-05-colour-key.jpg":"images/thumbs/geography-05-colour-key.jpg","images/chakra-shushufindi-map.png":"images/thumbs/chakra-shushufindi-map.jpg","images/agricity-model-detail.jpg":"images/thumbs/agricity-model-detail.jpg","images/geography-07-london.jpg":"images/thumbs/geography-07-london.jpg","images/agricity-aerial.jpg":"images/thumbs/agricity-aerial.jpg","images/geography-14-museum-site.png":"images/thumbs/geography-14-museum-site.jpg"};
 function projectMediaHTML(d){
   const inner = d.video
     ? `<video src="${d.video}"${d.poster?` poster="${d.poster}"`:''} controls playsinline preload="none"></video>`
-    : (d.img ? `<img src="${d.img}" alt="${d.label || 'Project image'}" loading="lazy">` : (DRAWINGS[d.svg] ? DRAWINGS[d.svg]() : ''));
+    : (d.img ? `<img src="${IMAGE_THUMBNAILS[d.img] || d.img}" alt="${d.label || 'Project image'}" loading="eager" decoding="async">` : (DRAWINGS[d.svg] ? DRAWINGS[d.svg]() : ''));
   return `<div class="p-drawing${d.wide?' wide':''}" ${d.img ? `data-fullscreen="${d.img}" data-caption="${d.label}"` : ''}>${inner}<div class="p-drawing-label">${d.label || ''}</div>${d.video ? `<button class="film-expand" type="button" data-video-fullscreen="${d.video}" data-poster="${d.poster||''}" data-caption="${d.label}">Expand film ↗</button>` : ''}</div>`;
 }
 function projectMarkup(p, index, expanded=false){
   const all = p.drawings || [];
-  const media = expanded ? all : all.slice(0, p.id === 'agricity' ? 1 : 3);
-  const mediaHTML = media.length ? `<div class="p-drawings"><div class="p-drawings-label">${expanded ? 'Project archive · Click a drawing to view full screen · Swipe or use arrows' : 'Preview · Open project to explore'}</div><div class="p-drawing-grid">${media.map(projectMediaHTML).join('')}</div></div>` : '';
+  const media = expanded ? all : all.slice(0, 1);
+  const mediaHTML = media.length ? `<div class="p-drawings"><div class="p-drawings-label">${expanded ? 'Project drawings · Click to enlarge · Use arrows to browse' : 'Selected drawing · Click to enlarge'}</div><div class="p-drawing-grid">${media.map(projectMediaHTML).join('')}</div></div>` : '';
   return `<div class="project-text" data-project-text="${index}">
     ${!expanded ? `<button type="button" class="project-open" data-project-open="${index}">Explore project ↗</button>` : ''}
     <div class="p-num">${p.num} / ${String(PROJECTS.length).padStart(2,'0')}</div>
@@ -1256,7 +1319,10 @@ function renderGallery(){
     if(d.poster) media.poster = d.poster;
     media.controls = true; media.playsInline = true; media.preload = 'metadata';
   }else{
-    media.src = d.img;
+    media.src = IMAGE_THUMBNAILS[d.img] || d.img;
+    const fullImage = new Image();
+    fullImage.src = d.img;
+    fullImage.decode().then(() => { if(media.isConnected && galleryItems[galleryIndex] === d) media.src = d.img; }).catch(()=>{});
     media.alt = d.label || 'Project drawing';
   }
   const caption = document.createElement('div');
@@ -1404,7 +1470,11 @@ function drawAnnotations(active){
     const x = (tmp.x*0.5 + 0.5) * window.innerWidth;
     const y = (-tmp.y*0.5 + 0.5) * window.innerHeight;
     const isActive = i === active;
-    const topY = 70 + i*0; // vary per project? keep simple
+    // Give every landscape title its own row instead of placing all at y=70.
+    // Keep text within the viewport, including on narrow screens.
+    const rowHeight = 24;
+    const topY = 54 + i * rowHeight;
+    const labelX = Math.max(14, Math.min(x + 9, w - 285));
     const cls = isActive ? 'active' : '';
     // vertical line
     svgInner += `<line class="col-line ${cls}" x1="${x}" y1="${y - 4}" x2="${x}" y2="${topY + 24}"/>`;
@@ -1412,7 +1482,7 @@ function drawAnnotations(active){
     svgInner += `<line class="col-tick ${cls}" x1="${x - 5}" y1="${topY + 24}" x2="${x + 5}" y2="${topY + 24}"/>`;
     // small label
     const label = PROJECTS[i].title;
-    svgInner += `<text class="${cls}" x="${x + 9}" y="${topY + 27}">${label}</text>`;
+    svgInner += `<text class="${cls}" x="${labelX}" y="${topY + 27}">${label}</text>`;
     // crosshair label below
     svgInner += `<text class="${cls}" x="${x + 9}" y="${y + 4}" style="font-size:8px;">${PROJECTS[i].num}</text>`;
   });
