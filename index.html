@@ -292,6 +292,16 @@
   }
   .p-body p + p{ margin-top: 12px; }
   .p-body em{ font-style: italic; color: var(--accent-strong); }
+  .p-meta.thesis-meta{ text-align:right; color:var(--accent); letter-spacing:.12em; }
+  .thesis-link{
+    display:inline-flex; align-items:center; gap:12px;
+    margin:18px 0 8px; padding:13px 18px;
+    border:1px solid var(--line-soft); color:var(--text);
+    background:rgba(236,228,212,.06); text-decoration:none;
+    font:11px 'JetBrains Mono',monospace; letter-spacing:.08em;
+    line-height:1.6; transition:color .2s ease,border-color .2s ease;
+  }
+  .thesis-link:hover,.thesis-link:focus-visible{color:var(--accent);border-color:var(--accent)}
 
   .p-drawings{
     margin-top: 24px;
@@ -654,8 +664,8 @@ const PROJECTS = [
       { label: "Orellana · territorial urbanisation and monoculture", img: "images/chakra-orellana-map.png", wide: true },
       { label: "Shushufindi · agricultural subdivision", img: "images/chakra-shushufindi-map.png", wide: true },
       { label: "Puerto Providencia · site plan", img: "images/chakra-site-plan.jpg", wide: true },
-      { label: "Architectural section · collective processing spaces", img: "images/seeds-long-section.jpg", wide: true },
-      { label: "Architectural section · landscape and structures", img: "images/seeds-cross-section.jpg", wide: true },
+      { label: "Original section · architecture and landscape", img: "images/our-seeds-section.jpg", wide: true },
+      { label: "Collective cultivation · masterplan", img: "images/our-seeds-masterplan.jpg", wide: true },
       { label: "Chakra typology · cultivation manual", img: "images/chakra-manual.jpg", wide: true },
       { label: "01 · Gathering canopy", img: "images/chakra-01-gathering.jpg", wide: true },
       { label: "02 · Cacao processing", img: "images/chakra-02-processing.jpg", wide: true },
@@ -676,9 +686,9 @@ const PROJECTS = [
     <p>The project investigates clay as a medium of relation between body, ground and ancestry. Raw clay was sourced and processed at Hooke Park (AA) and shaped into prototypes that hold and burn palo santo — the cleansing device developed for the film <em>Sasi</em>. The smoke moves as a continuous fabric between human and territory.</p>`,
     pos: [-12, 3.8, -28],
     drawings: [
+      { label: "Dislocation · riverfront canopy · render 01", img: "images/dislocation-render-01.png", wide: true },
       { label: "Ecuador · petroleum extraction map", img: "images/dislocation-ecuador-petroleum.png", wide: true },
       { label: "Ecuador · soil remediation map", img: "images/dislocation-soil-remediation.jpg", wide: true },
-      { label: "Dislocation · riverfront canopy · render 01", img: "images/dislocation-render-01.png", wide: true },
       { label: "Dislocation · woven canopy interior · render 02", img: "images/dislocation-render-02.png", wide: true },
       { label: "Dislocation · communal interior · render 03", img: "images/dislocation-render-03.png", wide: true },
       { label: "Dislocation · riverbank structures · render 04", img: "images/dislocation-render-04.png", wide: true },
@@ -695,7 +705,7 @@ const PROJECTS = [
   {
     id: 'films',
     num: '03',
-    title: 'Moving Image',
+    title: 'Moving Images',
     year: '2024 — 2025',
     meta: 'Modos de Habitar · Sasi · Pixelar',
     tutors: 'Three moving-image studies',
@@ -714,16 +724,18 @@ const PROJECTS = [
     num: '04',
     title: 'Land, Life, and Law',
     year: '2025',
-    meta: 'The Sarayaku Case · Honours thesis · AA',
+    meta: 'Architectural Association · Master’s Thesis · High Honours',
     tutors: 'Supervisor: Mercè Rodrigo García',
     body: `<p>A written investigation into the 2012 <em>Sarayaku v. Ecuador</em> judgement of the Inter-American Court of Human Rights, examining the conceptual collision between Indigenous cosmology and Western property law in the protection of Amazonian ancestral territories.</p>
     <p>The thesis traces the Kichwa concept of <em>Kawsak Sacha</em>, the living forest, and its encounter with a legal system founded on the notion of land as property. It asks how a Western legal framework can encounter a worldview in which the forest is not a thing to be owned but a being with its own life.</p>
     <p>The research considers how the legal recognition of Indigenous territory might move beyond ownership to recognise relations between people, rivers, forests and more-than-human life. It examines the limits of translating a living cosmology into the categories of a property-based legal system.</p>
     <p>Drawing on Philippe Descola, Eduardo Viveiros de Castro, Paulo Tavares, Eyal Weizman and Peter Fitzpatrick.</p>
-    <p><em>Research abstract.</em> The full thesis manuscript is not included in this website version.</p>`,
+    <p><a class="thesis-link" href="https://docs.google.com/document/d/1het93hS3bAhuymQ5euEf4TQbSXS2Hbz1VmatJyrYvCc/edit?usp=sharing" target="_blank" rel="noopener noreferrer">Read the complete master's thesis ↗</a></p>`,
     pos: [18, 4.8, -56],
     drawings: [
-      { label: "Ecuador · territorial context for the Sarayaku research", img: "images/thesis-territorial-context.jpg", wide: true },
+      { label: "Ecuador · territorial mapping of the Sarayaku case", img: "images/thesis-map.jpg", wide: true },
+      { label: "Land, Life, and Law · territorial rights and legal recognition", img: "images/thesis-court.jpg", wide: true },
+      { label: "Yasuní · extraction, protection and the living forest", img: "images/thesis-yasuni.jpg", wide: true },
     ],
   },
   {
@@ -737,6 +749,9 @@ const PROJECTS = [
     <p>Presented as the architectural counterpart to Ballen's solo exhibition <em>Animalism</em> at Mattatoio di Roma. Selected through international competition as one of five international teams.</p>`,
     pos: [6, 5.4, -72],
     drawings: [
+      { label: 'Cabane Chiostro · installed pavilion', img: 'images/cabane-final.jpg', wide: true },
+      { label: 'Cabane Chiostro · canopy', img: 'images/cabane-canopy.jpg', wide: true },
+      { label: 'Villa Medici · collective construction', img: 'images/cabane-build.jpg', wide: true },
     ],
   },
   {
@@ -1270,13 +1285,13 @@ function projectMediaHTML(d){
 }
 function projectMarkup(p, index, expanded=false){
   const all = p.drawings || [];
-  const media = expanded ? all : all.slice(0, 3);
+  const media = expanded ? all : all.slice(0, p.id === 'dislocation' ? 5 : 3);
   const mediaHTML = media.length ? `<div class="p-drawings"><div class="p-drawings-label">${expanded ? 'Project drawings · Click to enlarge · Use arrows to browse' : 'Selected drawings · Click to enlarge'}</div><div class="p-drawing-grid">${media.map(projectMediaHTML).join('')}</div></div>` : '';
   return `<div class="project-text" data-project-text="${index}">
     ${!expanded ? `<button type="button" class="project-open" data-project-open="${index}">Explore project ↗</button>` : ''}
     <div class="p-num">${p.num} / ${String(PROJECTS.length).padStart(2,'0')}</div>
     <div class="p-title">${p.title}</div>
-    <div class="p-meta">${p.year} · ${p.meta}${p.tutors ? `<br>${p.tutors}` : ''}</div>
+    <div class="p-meta${p.id === 'thesis' ? ' thesis-meta' : ''}">${p.year} · ${p.meta}${p.tutors ? `<br>${p.tutors}` : ''}</div>
     ${expanded ? `<div class="p-body">${p.body}</div>${mediaHTML}` : `${mediaHTML}<div class="p-body">${p.body}</div>`}
     ${!expanded ? `<button type="button" class="project-open project-open-bottom" data-project-open="${index}">View complete project ↗</button>` : ''}
   </div>`;
